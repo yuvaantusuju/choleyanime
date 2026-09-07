@@ -117,6 +117,8 @@ export default function HomePage() {
   const [episodes, setEpisodes] = useState<Episode[] | null>(null);
   const [episodesLoading, setEpisodesLoading] = useState(false);
   const [episodesError, setEpisodesError] = useState<string | null>(null);
+  const [episodesErrorDetails, setEpisodesErrorDetails] = useState<string | null>(null);
+  const [episodesErrorHint, setEpisodesErrorHint] = useState<string | null>(null);
   const [selectedEpisodes, setSelectedEpisodes] = useState<Set<string>>(new Set());
   const [episodeFilter, setEpisodeFilter] = useState("");
 
@@ -155,21 +157,30 @@ export default function HomePage() {
     setSelectedAnime(anime);
     setEpisodes(null);
     setEpisodesError(null);
+    setEpisodesErrorDetails(null);
     setSelectedEpisodes(new Set());
     setEpisodeFilter("");
     setEpisodesLoading(true);
     try {
-      const res = await fetch(
-        `/api/episodes?url=${encodeURIComponent(anime.url)}`,
-      );
+      // Use the short `id` form (just the hash) to keep the URL small
+      // and avoid any edge case where Vercel's URL parsing is strict.
+      const res = await fetch(`/api/episodes?id=${encodeURIComponent(anime.id)}`, {
+        cache: "no-store",
+      });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data?.error || `Request failed (${res.status})`);
+        throw Object.assign(
+          new Error(data?.error || `Request failed (${res.status})`),
+          { details: data?.details, hint: data?.hint },
+        );
       }
       const eps = (data.episodes as Episode[]) ?? [];
       setEpisodes(eps);
     } catch (e) {
-      setEpisodesError(e instanceof Error ? e.message : "Failed to load episodes.");
+      const err = e as Error & { details?: string; hint?: string };
+      setEpisodesError(err.message || "Failed to load episodes.");
+      setEpisodesErrorDetails(err.details ?? null);
+      setEpisodesErrorHint(err.hint ?? null);
     } finally {
       setEpisodesLoading(false);
     }
@@ -505,12 +516,35 @@ export default function HomePage() {
             )}
 
             {episodesError && (
-              <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <p className="font-medium">Failed to load episodes</p>
-                  <p className="text-rose-300/80 mt-0.5">{episodesError}</p>
+              <div className="flex flex-col gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium">Failed to load episodes</p>
+                    <p className="text-rose-300/80 mt-0.5">{episodesError}</p>
+                  </div>
                 </div>
+                {(episodesErrorDetails || episodesErrorHint) && (
+                  <details className="ml-8 text-xs text-rose-300/70">
+                    <summary className="cursor-pointer hover:text-rose-200">
+                      Show technical details
+                    </summary>
+                    <div className="mt-2 space-y-1 rounded bg-rose-950/40 p-2 font-mono">
+                      {episodesErrorDetails && (
+                        <p>
+                          <span className="text-rose-400">details:</span>{" "}
+                          {episodesErrorDetails}
+                        </p>
+                      )}
+                      {episodesErrorHint && (
+                        <p>
+                          <span className="text-rose-400">hint:</span>{" "}
+                          {episodesErrorHint}
+                        </p>
+                      )}
+                    </div>
+                  </details>
+                )}
               </div>
             )}
 
