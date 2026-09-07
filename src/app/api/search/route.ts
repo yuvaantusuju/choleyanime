@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import {
   absoluteUrl,
+  extractShowHash,
   fetchHtml,
   parseHtml,
   type SearchResult,
@@ -55,6 +56,9 @@ export async function GET(req: NextRequest) {
         const url = absoluteUrl(href);
         if (!url) return;
 
+        const hash = extractShowHash(href) ?? extractShowHash(url);
+        if (!hash) return;
+
         const title =
           $el.find(".fastname").first().text().trim() ||
           $el.text().trim() ||
@@ -63,7 +67,7 @@ export async function GET(req: NextRequest) {
 
         if (!title) return;
         results.push({
-          id: href,
+          id: hash,
           title,
           url,
           image,
@@ -91,6 +95,9 @@ export async function GET(req: NextRequest) {
         const url = absoluteUrl(href);
         if (!url) return;
 
+        const hash = extractShowHash(href) ?? extractShowHash(url);
+        if (!hash) return;
+
         const title =
           $el.find(".similarname").first().text().trim() ||
           $a.text().trim() ||
@@ -101,7 +108,7 @@ export async function GET(req: NextRequest) {
 
         if (!title) return;
         results.push({
-          id: href,
+          id: hash,
           title,
           url,
           image,

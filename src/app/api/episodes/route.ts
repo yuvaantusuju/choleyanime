@@ -48,10 +48,24 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // If the client only sent `id`, build the URL ourselves
-  const showUrl = raw
-    ? (absoluteUrl(raw) ?? raw)
-    : `https://animeheaven.me/anime.php?${encodeURIComponent(id ?? "")}`;
+  // If the client only sent `id`, normalize it. The id may arrive in any
+  // of these forms:
+  //   - "wn1fk"                       (just the hash)
+  //   - "/anime.php?wn1fk"            (from the search route's raw href)
+  //   - "anime.php?wn1fk"             (relative)
+  //   - "https://animeheaven.me/anime.php?wn1fk"  (already absolute)
+  // We need a clean `https://animeheaven.me/anime.php?HASH` in all cases.
+  let showUrl: string;
+  if (raw) {
+    showUrl = absoluteUrl(raw) ?? raw;
+  } else {
+    const cleaned = (id ?? "")
+      .replace(/^https?:\/\/[^/]+/i, "")  // strip scheme + host
+      .replace(/^\/+/, "")                 // strip leading slashes
+      .replace(/^anime\.php\?/, "")        // strip leading "anime.php?"
+      .trim();
+    showUrl = `https://animeheaven.me/anime.php?${encodeURIComponent(cleaned)}`;
+  }
 
   // --- Fetch with retry ---
   const { html, fetchAttempt, fetchError } = await fetchWithRetry(showUrl);

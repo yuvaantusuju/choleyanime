@@ -29,6 +29,31 @@ export function absoluteUrl(
   }
 }
 
+/**
+ * Extract the per-show hash from any of the URL forms used by the site:
+ *   "wn1fk"                          → "wn1fk"
+ *   "/anime.php?wn1fk"               → "wn1fk"
+ *   "anime.php?wn1fk"                → "wn1fk"
+ *   "https://animeheaven.me/anime.php?wn1fk"  → "wn1fk"
+ *   "https://animeheaven.me/anime.php?wn1fk&foo=bar" → "wn1fk"
+ */
+export function extractShowHash(input: string | undefined | null): string | null {
+  if (!input) return null;
+  // Strip scheme + host
+  let s = input.replace(/^https?:\/\/[^/]+/i, "");
+  // Strip leading slashes
+  s = s.replace(/^\/+/, "");
+  // Strip leading "anime.php?" or "anime.php"
+  s = s.replace(/^anime\.php\??/i, "");
+  // Now `s` should be the hash, possibly with extra query params
+  // Take the first `key=value` pair or just the leading string
+  const m = s.match(/^([^&?#]+)/);
+  const candidate = m?.[1] ?? s;
+  // Sanity: hashes are typically short alphanumeric
+  if (!/^[A-Za-z0-9]+$/.test(candidate)) return null;
+  return candidate;
+}
+
 export interface FetchHtmlOptions {
   /** Optional extra cookies (e.g. `key=<hash>` for gate.php) */
   cookies?: Record<string, string>;
