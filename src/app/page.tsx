@@ -8,7 +8,6 @@ import {
   Pause,
   Play,
   Search,
-  Tv2,
   X,
   CheckSquare,
   Square,
@@ -394,12 +393,26 @@ export default function HomePage() {
   // --- Render ---
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100">
+    <main className="choley-shell min-h-screen overflow-hidden text-[#1e2521]">
       <Header />
 
-      <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 py-8 sm:py-10 space-y-10">
+      <div className="relative mx-auto w-full max-w-6xl space-y-10 px-5 pb-10 sm:px-8">
+        <div className="soft-grid pointer-events-none absolute inset-x-0 top-0 h-96 opacity-40" />
         {/* Search Section */}
-        <section className="space-y-5">
+        <section id="search" className="hero-board reveal relative space-y-8 pb-14 pt-14 sm:pb-20 sm:pt-20">
+          <div className="hero-index mono" aria-hidden="true">
+            <span>CH</span>
+            <span>01 / 03</span>
+          </div>
+          <div className="max-w-3xl">
+            <p className="mono mb-5 text-[11px] uppercase tracking-[0.24em] text-[#d7f64a]">Your episodes. Offline. Anywhere.</p>
+            <h2 className="hero-title max-w-2xl text-5xl font-extrabold leading-[0.9] tracking-[-0.06em] text-white sm:text-8xl">
+              Watch later.<br /><span>Keep forever.</span>
+            </h2>
+            <p className="mt-6 max-w-xl text-base leading-7 text-[#a9a7b1] sm:text-lg">
+              Turn anime series into a personal offline library, without the clutter.
+            </p>
+          </div>
           <SearchBar
             value={query}
             onChange={setQuery}
@@ -412,10 +425,15 @@ export default function HomePage() {
               setSearchedFor("");
             }}
           />
+          <div className="hero-steps flex flex-wrap gap-x-8 gap-y-2 text-xs text-[#a9a7b1]">
+            <span><strong className="text-white">01</strong> Search a title</span>
+            <span><strong className="text-white">02</strong> Pick episodes</span>
+            <span><strong className="text-white">03</strong> Read offline</span>
+          </div>
 
           {searchError && (
             <div className="flex items-start gap-3 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200">
-              <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
               <div className="text-sm">
                 <p className="font-medium">Search failed</p>
                 <p className="text-rose-300/80 mt-0.5">{searchError}</p>
@@ -431,10 +449,10 @@ export default function HomePage() {
 
           {results && results.length > 0 && (
             <div>
-              <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                <Tv2 className="h-4 w-4" />
+              <h2 className="mb-4 flex items-center gap-3 text-sm font-bold uppercase tracking-[0.16em] text-[#737a73]">
+                <span className="h-2 w-2 rounded-full bg-[#ef6b43]" />
                 Results for &ldquo;{searchedFor}&rdquo;
-                <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
+                <span className="mono rounded-full border border-[#1e2521]/15 px-2 py-0.5 text-[10px] font-medium text-[#737a73]">
                   {results.length}
                 </span>
               </h2>
@@ -453,7 +471,7 @@ export default function HomePage() {
 
         {/* Episode Dashboard */}
         {selectedAnime && (
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 backdrop-blur shadow-2xl shadow-black/30">
+          <section className="reveal rounded-xs border border-[#1e2521]/15 bg-[#fbfaf7] p-5 shadow-[0_20px_60px_rgba(30,37,33,.08)] sm:p-7">
             <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <button
@@ -462,16 +480,16 @@ export default function HomePage() {
                     setEpisodes(null);
                     setSelectedEpisodes(new Set());
                   }}
-                  className="rounded-lg border border-slate-700 bg-slate-800/50 p-2 text-slate-300 transition hover:border-slate-600 hover:text-white"
+                    className="rounded-full border border-[#1e2521]/15 p-2 text-[#737a73] transition hover:border-[#ef6b43] hover:text-[#ef6b43]"
                   aria-label="Back to results"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
                 <div>
-                  <h2 className="text-lg font-semibold text-white">
+                  <h2 className="text-lg font-extrabold tracking-tight text-[#1e2521]">
                     {selectedAnime.title}
                   </h2>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[#737a73]">
                     {episodesLoading
                       ? "Loading episodes…"
                       : episodes
@@ -488,18 +506,18 @@ export default function HomePage() {
                     value={episodeFilter}
                     onChange={(e) => setEpisodeFilter(e.target.value)}
                     placeholder="Filter…"
-                    className="w-32 rounded-lg border border-slate-700 bg-slate-800/70 px-3 py-1.5 text-sm text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+                    className="w-32 border-b border-[#1e2521]/20 bg-transparent px-1 py-1.5 text-sm text-[#1e2521] placeholder-[#737a73] focus:border-[#ef6b43] focus:outline-none"
                   />
                   <button
                     onClick={selectAll}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:text-white"
+                    className="inline-flex items-center gap-1.5 border border-[#1e2521]/15 px-3 py-1.5 text-xs font-medium text-[#1e2521] transition hover:border-[#ef6b43] hover:text-[#ef6b43]"
                   >
                     <CheckSquare className="h-3.5 w-3.5" />
                     Select All
                   </button>
                   <button
                     onClick={clearSelection}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:text-white"
+                    className="inline-flex items-center gap-1.5 border border-[#1e2521]/15 px-3 py-1.5 text-xs font-medium text-[#1e2521] transition hover:border-[#ef6b43] hover:text-[#ef6b43]"
                   >
                     <Square className="h-3.5 w-3.5" />
                     Deselect All
@@ -507,7 +525,7 @@ export default function HomePage() {
                   <button
                     onClick={downloadSelected}
                     disabled={selectedEpisodes.size === 0}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-semibold text-white shadow-lg shadow-sky-500/30 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:bg-slate-700 disabled:text-slate-400 disabled:shadow-none"
+                    className="inline-flex items-center gap-1.5 bg-[#ef6b43] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#bd4c2e] disabled:cursor-not-allowed disabled:bg-[#d8d5ce] disabled:text-[#737a73]"
                   >
                     <Download className="h-3.5 w-3.5" />
                     Download Selected ({selectedEpisodes.size})
@@ -526,7 +544,7 @@ export default function HomePage() {
             {episodesError && (
               <div className="flex flex-col gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-rose-200">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
                   <div className="text-sm">
                     <p className="font-medium">Failed to load episodes</p>
                     <p className="text-rose-300/80 mt-0.5">{episodesError}</p>
@@ -572,14 +590,14 @@ export default function HomePage() {
                       onClick={() => toggleEpisode(ep.key)}
                       className={`group flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left text-sm transition ${
                         checked
-                          ? "border-sky-500/60 bg-sky-500/15 text-sky-100"
-                          : "border-slate-700/70 bg-slate-800/40 text-slate-300 hover:border-slate-600 hover:bg-slate-800/70"
+                          ? "border-[#ef6b43] bg-[#fce1d7] text-[#1e2521]"
+                          : "border-[#1e2521]/15 bg-[#f4f1eb] text-[#737a73] hover:border-[#ef6b43] hover:bg-[#fffaf5]"
                       }`}
                     >
                       {checked ? (
-                        <CheckSquare className="h-4 w-4 flex-shrink-0 text-sky-400" />
+                        <CheckSquare className="h-4 w-4 shrink-0 text-[#ef6b43]" />
                       ) : (
-                        <Square className="h-4 w-4 flex-shrink-0 text-slate-500 group-hover:text-slate-400" />
+                        <Square className="h-4 w-4 shrink-0 text-[#a8aea7] group-hover:text-[#ef6b43]" />
                       )}
                       <span className="truncate font-medium">
                         {ep.number}
@@ -594,10 +612,10 @@ export default function HomePage() {
 
         {/* Active Downloads Queue */}
         {downloadList.length > 0 && (
-          <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 sm:p-6 backdrop-blur shadow-2xl shadow-black/30">
+          <section id="library" className="reveal rounded-xs border border-[#1e2521]/15 bg-[#fbfaf7] p-5 shadow-[0_20px_60px_rgba(30,37,33,.08)] sm:p-7">
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-slate-400">
-                <ListChecks className="h-4 w-4" />
+              <h2 className="flex items-center gap-3 text-sm font-bold uppercase tracking-[0.16em] text-[#737a73]">
+                <ListChecks className="h-4 w-4 text-[#ef6b43]" />
                 Active Downloads
                 <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-300">
                   {downloadList.length}
@@ -605,7 +623,7 @@ export default function HomePage() {
               </h2>
               <button
                 onClick={clearCompleted}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/50 px-3 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:text-white"
+                  className="inline-flex items-center gap-1.5 border border-[#1e2521]/15 px-3 py-1.5 text-xs font-medium text-[#1e2521] transition hover:border-[#ef6b43] hover:text-[#ef6b43]"
               >
                 <RefreshCcw className="h-3.5 w-3.5" />
                 Clear Finished
@@ -636,29 +654,26 @@ export default function HomePage() {
 
 function Header() {
   return (
-    <header className="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 sm:px-6 py-4">
+    <header className="site-header relative z-10">
+      <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-5 sm:px-8">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 shadow-lg shadow-sky-500/30">
-            <Film className="h-5 w-5 text-white" />
+          <div className="brand-mark grid h-9 w-9 place-items-center text-white">
+            <Film className="h-4 w-4" />
           </div>
           <div>
-            <h1 className="text-lg font-bold leading-tight text-white">
-              Anime Scraper
+            <h1 className="text-lg font-extrabold leading-tight tracking-[-0.04em] text-white">
+              CHOLEY
             </h1>
-            <p className="text-xs text-slate-400">
-              Search · Browse · Download from animeheaven.me
+            <p className="mono text-[9px] uppercase tracking-[0.14em] text-[#a9a7b1]">
+              Anime downloader
             </p>
           </div>
         </div>
-        <a
-          href="https://animeheaven.me"
-          target="_blank"
-          rel="noreferrer"
-          className="hidden text-xs text-slate-500 hover:text-slate-300 sm:inline"
-        >
-          animeheaven.me ↗
-        </a>
+        <nav className="hidden items-center gap-7 text-xs font-semibold text-[#a9a7b1] sm:flex">
+          <a href="#search" className="transition hover:text-white">How it works</a>
+          <a href="#library" className="transition hover:text-white">My library</a>
+          <a href="#search" className="header-cta">Open downloader <span aria-hidden="true">→</span></a>
+        </nav>
       </div>
     </header>
   );
@@ -677,23 +692,23 @@ function SearchBar(props: {
         e.preventDefault();
         props.onSubmit();
       }}
-      className="flex gap-2"
+      className="search-module flex max-w-3xl gap-2 p-2 pl-4"
     >
       <div className="relative flex-1">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-1 top-1/2 h-5 w-5 -translate-y-1/2 text-[#ffd8cf]" />
         <input
           type="text"
           value={props.value}
           onChange={(e) => props.onChange(e.target.value)}
-          placeholder='Search anime — e.g. "Naruto", "One Piece"…'
-          className="w-full rounded-xl border border-slate-700 bg-slate-900/70 py-3 pl-11 pr-10 text-base text-slate-100 placeholder-slate-500 shadow-inner shadow-black/30 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
+          placeholder='Search anime, e.g. "One Piece"'
+          className="w-full bg-transparent py-3 pl-9 pr-10 text-base text-white placeholder-[#ffd8cf]/70 focus:outline-none sm:text-lg"
           autoFocus
         />
         {props.value && (
           <button
             type="button"
             onClick={props.onClear}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+            className="absolute right-1 top-1/2 -translate-y-1/2 rounded-full p-1 text-[#ffd8cf] hover:bg-white/10 hover:text-white"
             aria-label="Clear"
           >
             <X className="h-4 w-4" />
@@ -703,7 +718,7 @@ function SearchBar(props: {
       <button
         type="submit"
         disabled={props.loading || !props.value.trim()}
-        className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/30 transition hover:from-sky-400 hover:to-indigo-500 disabled:cursor-not-allowed disabled:from-slate-700 disabled:to-slate-700 disabled:text-slate-400 disabled:shadow-none"
+        className="search-submit inline-flex items-center gap-2 px-5 py-3 text-sm font-semibold text-[#1e2521] transition disabled:cursor-not-allowed disabled:bg-white/40 disabled:text-[#6f1b1d]"
       >
         {props.loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -721,9 +736,9 @@ function ResultCard(props: { item: SearchResult; onClick: () => void }) {
   return (
     <button
       onClick={props.onClick}
-      className="group overflow-hidden rounded-xl border border-slate-800 bg-slate-900/60 text-left transition hover:border-sky-500/50 hover:shadow-xl hover:shadow-sky-500/10"
+      className="group overflow-hidden border border-[#1e2521]/15 bg-[#fbfaf7] text-left transition hover:-translate-y-1 hover:border-[#ef6b43] hover:shadow-[0_18px_35px_rgba(30,37,33,.12)]"
     >
-      <div className="relative aspect-[3/4] w-full overflow-hidden bg-slate-800">
+      <div className="relative aspect-3/4 w-full overflow-hidden bg-slate-800">
         {props.item.image && !imgError ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -735,17 +750,17 @@ function ResultCard(props: { item: SearchResult; onClick: () => void }) {
             referrerPolicy="no-referrer"
           />
         ) : (
-          <div className="grid h-full w-full place-items-center text-slate-600">
+          <div className="grid h-full w-full place-items-center text-[#a8aea7]">
             <ImageOff className="h-10 w-10" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1e2521]/70 via-transparent to-transparent" />
       </div>
       <div className="p-3">
-        <h3 className="line-clamp-2 text-sm font-semibold text-white">
+        <h3 className="line-clamp-2 text-sm font-bold text-[#1e2521]">
           {props.item.title}
         </h3>
-        <p className="mt-1 line-clamp-2 text-xs text-slate-400">
+        <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#737a73]">
           {props.item.description}
         </p>
       </div>
@@ -759,12 +774,12 @@ function ResultsSkeleton() {
       {Array.from({ length: 8 }).map((_, i) => (
         <div
           key={i}
-          className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/40"
+          className="overflow-hidden border border-[#1e2521]/10 bg-[#fbfaf7]"
         >
-          <div className="aspect-[3/4] w-full animate-pulse bg-slate-800" />
+          <div className="aspect-[3/4] w-full animate-pulse bg-[#dfddd6]" />
           <div className="space-y-2 p-3">
-            <div className="h-3 w-3/4 animate-pulse rounded bg-slate-800" />
-            <div className="h-2 w-full animate-pulse rounded bg-slate-800/70" />
+            <div className="h-3 w-3/4 animate-pulse rounded bg-[#dfddd6]" />
+            <div className="h-2 w-full animate-pulse rounded bg-[#e7e4dd]" />
           </div>
         </div>
       ))}
@@ -774,13 +789,13 @@ function ResultsSkeleton() {
 
 function EmptyResults({ query }: { query: string }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-8 text-center">
-      <Search className="mx-auto mb-3 h-8 w-8 text-slate-600" />
-      <p className="text-slate-300">
+    <div className="border border-[#1e2521]/15 bg-[#fbfaf7] p-8 text-center">
+      <Search className="mx-auto mb-3 h-8 w-8 text-[#a8aea7]" />
+      <p className="text-[#737a73]">
         No anime found for{" "}
-        <span className="font-semibold text-white">&ldquo;{query}&rdquo;</span>.
+        <span className="font-bold text-[#1e2521]">&ldquo;{query}&rdquo;</span>.
       </p>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1 text-xs text-[#92978f]">
         Try a different spelling or a shorter query.
       </p>
     </div>
@@ -798,15 +813,15 @@ function DownloadRow(props: {
     item.status === "queued" || item.status === "error" || item.status === "cancelled";
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-900/50 p-3">
+    <div className="border border-[#1e2521]/15 bg-[#f4f1eb] p-3">
       <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium text-slate-100">
-            <span className="text-slate-400">{item.animeTitle}</span>
-            <span className="mx-2 text-slate-600">·</span>
+          <p className="truncate text-sm font-bold text-[#1e2521]">
+            <span className="text-[#737a73]">{item.animeTitle}</span>
+            <span className="mx-2 text-[#a8aea7]">·</span>
             <span>{item.episode.number}</span>
           </p>
-          <p className="mt-0.5 truncate text-xs text-slate-500">
+          <p className="mt-0.5 truncate text-xs text-[#737a73]">
             {item.message ?? "Waiting…"}
           </p>
         </div>
@@ -830,7 +845,7 @@ function DownloadRow(props: {
           {canStart && (
             <button
               onClick={props.onStart}
-              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/60 px-2.5 py-1.5 text-xs font-medium text-slate-200 transition hover:border-slate-600 hover:text-white"
+              className="inline-flex items-center gap-1 border border-[#1e2521]/15 bg-[#fbfaf7] px-2.5 py-1.5 text-xs font-medium text-[#1e2521] transition hover:border-[#ef6b43] hover:text-[#ef6b43]"
               aria-label="Start download"
             >
               <Play className="h-3 w-3" />
@@ -840,7 +855,7 @@ function DownloadRow(props: {
           {!canStart && item.status === "downloading" && (
             <button
               disabled
-              className="inline-flex items-center gap-1 rounded-md border border-slate-700 bg-slate-800/40 px-2.5 py-1.5 text-xs font-medium text-slate-500"
+              className="inline-flex items-center gap-1 border border-[#1e2521]/10 bg-[#e7e4dd] px-2.5 py-1.5 text-xs font-medium text-[#92978f]"
             >
               <Pause className="h-3 w-3" />
               In progress
@@ -848,7 +863,7 @@ function DownloadRow(props: {
           )}
           <button
             onClick={props.onRemove}
-            className="rounded-md p-1.5 text-slate-500 hover:bg-slate-800 hover:text-rose-300"
+            className="rounded-full p-1.5 text-[#92978f] hover:bg-[#fce1d7] hover:text-[#bd4c2e]"
             aria-label="Remove from queue"
           >
             <X className="h-3.5 w-3.5" />
@@ -860,12 +875,12 @@ function DownloadRow(props: {
       {(item.status === "resolving" ||
         item.status === "downloading" ||
         item.status === "done") && (
-        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#d8d5ce]">
           <div
             className={`h-full transition-all duration-300 ${
               item.status === "done"
                 ? "bg-emerald-500"
-                : "bg-gradient-to-r from-sky-400 to-indigo-500"
+                : "bg-[#ef6b43]"
             }`}
             style={{
               width:
@@ -884,10 +899,8 @@ function DownloadRow(props: {
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-800/80 pt-6 text-center text-xs text-slate-500">
+    <footer className="border-t border-[#1e2521]/15 pt-8 text-center text-xs text-[#737a73]">
       <p>
-        For educational use only. Respect the source site&apos;s terms of service
-        and the laws in your jurisdiction.
       </p>
     </footer>
   );

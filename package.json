@@ -1,5 +1,5 @@
 {
-  "name": "anime-scraper",
+  "name": "CholeyAnime",
   "private": true,
   "scripts": {
     "dev": "next dev",

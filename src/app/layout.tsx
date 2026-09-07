@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Anime Scraper · Search, Browse & Download",
+  title: "CholeyAnime · Watch later. Keep forever.",
   description:
-    "A Next.js 14 web app that searches animeheaven.me, lists episodes, and proxies .mp4 downloads.",
+    "A focused anime downloader for building your own offline library.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
