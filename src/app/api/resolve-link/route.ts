@@ -77,9 +77,16 @@ export async function GET(req: NextRequest) {
     }
 
     return Response.json({
+      ok: true,
+      source: gateUrl,
       key,
       gateUrl,
       mirrors,
+      candidates: mirrors.map((href, index) => ({
+        href,
+        label: `Mirror ${index + 1}`,
+      })),
+      label: "Resolved episode stream",
       mp4Url: mirrors[0],
     });
   } catch (err) {

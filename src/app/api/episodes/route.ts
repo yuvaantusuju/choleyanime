@@ -133,7 +133,9 @@ export async function GET(req: NextRequest) {
 
   // Diagnostic payload
   const body = JSON.stringify({
+    ok: true,
     showTitle,
+    title: showTitle,
     showUrl,
     totalEpisodes,
     count: unique.length,
