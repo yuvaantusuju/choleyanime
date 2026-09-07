@@ -139,11 +139,14 @@ export default function HomePage() {
     setSelectedEpisodes(new Set());
     try {
       const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
+      const data = (await res.json()) as {
+        results?: SearchResult[];
+        error?: string;
+      };
       if (!res.ok) {
         throw new Error(data?.error || `Request failed (${res.status})`);
       }
-      setResults(data.results as SearchResult[]);
+      setResults((data.results ?? []) as SearchResult[]);
     } catch (e) {
       setSearchError(e instanceof Error ? e.message : "Search failed.");
     } finally {
@@ -167,14 +170,19 @@ export default function HomePage() {
       const res = await fetch(`/api/episodes?id=${encodeURIComponent(anime.id)}`, {
         cache: "no-store",
       });
-      const data = await res.json();
+      const data = (await res.json()) as {
+        episodes?: Episode[];
+        error?: string;
+        details?: string;
+        hint?: string;
+      };
       if (!res.ok) {
         throw Object.assign(
           new Error(data?.error || `Request failed (${res.status})`),
           { details: data?.details, hint: data?.hint },
         );
       }
-      const eps = (data.episodes as Episode[]) ?? [];
+      const eps = (data.episodes ?? []) as Episode[];
       setEpisodes(eps);
     } catch (e) {
       const err = e as Error & { details?: string; hint?: string };
@@ -251,9 +259,9 @@ export default function HomePage() {
         const r = await fetch(
           `/api/resolve-link?key=${encodeURIComponent(item.episode.key)}`,
         );
-        const data = await r.json();
+        const data = (await r.json()) as { mp4Url?: string; error?: string };
         if (!r.ok) throw new Error(data?.error || `Resolve failed (${r.status})`);
-        const mp4Url: string = data.mp4Url;
+        const mp4Url: string | undefined = data.mp4Url;
         if (!mp4Url) throw new Error("No direct .mp4 link returned.");
 
         updateDownload(id, {

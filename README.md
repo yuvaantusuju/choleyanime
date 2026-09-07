@@ -28,7 +28,7 @@ src/
 ├── app/
 │   ├── api/
 │   │   ├── search/route.ts        # GET /api/search?q=...
-│   │   ├── episodes/route.ts      # GET /api/episodes?url=...
+│   │   ├── episodes/route.ts      # GET /api/episodes?id=...
 │   │   ├── resolve-link/route.ts  # GET /api/resolve-link?key=...
 │   │   ├── download/route.ts      # GET /api/download?url=...&anime=...&episode=...
 │   │   └── health/route.ts        # GET /api/health
@@ -37,7 +37,11 @@ src/
 │   └── globals.css
 └── lib/
     └── animeheaven.ts             # Shared fetch + cheerio helpers
-vercel.json                        # Vercel deployment config (timeouts, region)
+
+# Deployment config
+wrangler.toml                      # Cloudflare Workers config
+open-next.config.ts                # OpenNext adapter config
+next.config.ts                     # Calls initOpenNextCloudflareForDev()
 ```
 
 ---
@@ -78,58 +82,93 @@ npm run start
 
 ---
 
-## Deploying to Vercel
+## Deploying
 
-The app is Vercel-ready out of the box. Just push the repo to GitHub
-and import it on Vercel — no env vars needed.
+This project supports two deployment targets out of the box:
 
-### `vercel.json` settings
+| Target | Adapter | Build command | Notes |
+|--------|---------|---------------|-------|
+| **Cloudflare Workers** (recommended) | `@opennextjs/cloudflare` | `npm run deploy` | Cold start ~50ms, free tier generous, runs the Node.js runtime via `nodejs_compat` |
+| Vercel | (built-in) | `npm run build` | Use `vercel.json` if you add one back |
 
-```json
-{
-  "framework": "nextjs",
-  "regions": ["iad1"],
-  "functions": {
-    "src/app/api/search/route.ts":       { "maxDuration": 30 },
-    "src/app/api/episodes/route.ts":     { "maxDuration": 30 },
-    "src/app/api/resolve-link/route.ts": { "maxDuration": 30 },
-    "src/app/api/download/route.ts":     { "maxDuration": 60 }
-  }
-}
+### Deploying to Cloudflare Workers
+
+> **Why Cloudflare?** Faster cold starts, more generous free tier, and
+> Cloudflare's edge network often has different egress IP reputation than
+> Vercel's AWS us-east-1 fleet, which can help when an upstream site
+> rate-limits one provider.
+
+#### One-time setup
+
+1. Install dependencies (already done by `npm install`):
+   ```bash
+   npm install
+   ```
+
+2. Make sure you have a Cloudflare account. Log in to the Wrangler CLI:
+   ```bash
+   npx wrangler login
+   ```
+
+3. The included `wrangler.toml` and `open-next.config.ts` are already
+   configured. They set:
+   - `compatibility_flags = ["nodejs_compat"]` — required for `cheerio`
+   - `compatibility_date = "2025-11-01"`
+   - `wrapper: "cloudflare-node"` — so API routes run on the Node.js runtime
+   - Static assets bound to `ASSETS`
+
+#### Preview locally
+
+```bash
+npm run preview
 ```
 
-- **`maxDuration: 30`** — Vercel's free plan caps functions at 10s, Pro at
-  60s, and Enterprise at 900s. If you're on the free plan, drop these to
-  `10` and accept that some long episodes lists will time out.
-- **`regions: ["iad1"]`** — pick the region closest to the upstream site.
-  Change to `hnd1`, `fra1`, etc. as needed.
-- The `download` route **streams** the upstream `.mp4` through the
-  function, so it has to stay within the function timeout. For very long
-  videos you may need to use a signed redirect instead of proxying.
+This runs `next build`, then the OpenNext adapter, then starts
+`wrangler dev` on `http://localhost:8788`. Test your routes there.
 
-### Common Vercel errors and fixes
+#### Deploy to production
 
-| Symptom                                                                | Cause                                                                                          | Fix                                                                                          |
-|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
-| `FUNCTION_INVOCATION_TIMEOUT` (status 504)                             | Function ran longer than the Vercel plan allows (free = 10s, pro = 60s).                       | Lower `maxDuration` in `vercel.json`, or upgrade the Vercel plan.                            |
-| Search returns 0 results in the deployed app but works locally        | The upstream site may rate-limit Vercel's egress IPs.                                          | Retry, or deploy with a different region.                                                    |
-| Download button does nothing (no file is saved)                       | The browser blocks the `Content-Disposition` header because of the Vercel CORS or x-frame settings. | Open `/api/health` to confirm the proxy is reachable, then test `/api/download?url=...` directly. |
-| Build fails with `Error: Cannot find module 'cheerio'`                | `cheerio` wasn't installed before the deploy.                                                  | Ensure `cheerio` is in `dependencies` (not `devDependencies`) in `package.json` and re-push.  |
-| `FUNCTION_PAYLOAD_TOO_LARGE` on `/api/download`                       | The streamed `.mp4` exceeded Vercel's per-function body limit (4.5 MB on free).                | Use a different download flow (e.g. a signed URL or chunked redirect).                         |
+```bash
+npm run deploy
+```
 
-### Quick debugging checklist
+That runs `next build`, then `opennextjs-cloudflare deploy`, which
+uploads the bundle to Cloudflare and gives you a `*.workers.dev` URL.
 
-1. Open `https://<your-app>.vercel.app/api/health` — you should get
-   `{"ok":true,...}`.
-2. Open `https://<your-app>.vercel.app/api/search?q=Naruto` — you should
-   get a JSON list.
-3. If step 2 fails, open **Vercel → Project → Logs → Functions** to see
-   the actual error.
-4. Test from your machine with `curl` (not the browser) to bypass any
-   browser CORS issues:
-   ```bash
-   curl "https://<your-app>.vercel.app/api/search?q=Naruto"
-   ```
+#### Custom domain
+
+In `wrangler.toml`, uncomment the `routes` block and put your domain:
+
+```toml
+routes = [
+  { pattern = "anime.example.com/*", zone_name = "example.com" }
+]
+```
+
+Then run `npm run deploy` again.
+
+#### Add R2-backed incremental cache (optional)
+
+For caching show pages and episode lists across requests:
+
+1. Create an R2 bucket in the Cloudflare dashboard (or
+   `wrangler r2 bucket create anime-scraper-cache`).
+2. In `wrangler.toml`, uncomment the `[[r2_buckets]]` block.
+3. In `open-next.config.ts`, change `incrementalCache: "dummy"` to a
+   function that returns the R2-backed cache. See
+   <https://opennext.js.org/cloudflare/caching>.
+
+### Deploying to Vercel
+
+Vercel still works. Just push to GitHub and import. **Delete the
+`wrangler.toml`, `open-next.config.ts`, and the `wrangler` /
+`@opennextjs/cloudflare` packages from `package.json`** if you don't
+need them, because Vercel will try to read `wrangler.toml` and complain
+about the OpenNext build script.
+
+If you do deploy to Vercel, the previous `vercel.json` config (with
+`maxDuration: 30-60`) is no longer included; recreate it manually if
+you hit function timeouts.
 
 ---
 

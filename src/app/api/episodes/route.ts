@@ -8,11 +8,11 @@ import {
 } from "@/lib/animeheaven";
 
 export const dynamic = "force-dynamic";
+// Use Node.js runtime (the @opennextjs/cloudflare adapter supports this).
 export const runtime = "nodejs";
-// Vercel-specific: per-route segment config. On Pro this lets us go beyond
-// the 10s default. Free plan still caps at 10s.
+// Cloudflare Workers has a 30s CPU time limit on paid plans. Vercel uses
+// maxDuration; Cloudflare ignores it but the value is harmless.
 export const maxDuration = 60;
-export const preferredRegion = ["iad1", "hnd1", "fra1"];
 
 /**
  * Extracts the episode list from an animeheaven.me show page.

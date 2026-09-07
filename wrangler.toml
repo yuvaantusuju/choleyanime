@@ -1,0 +1,11 @@
+name = "anime-scraper"
+compatibility_date = "2025-11-01"
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
+main = ".open-next/worker.js"
+assets = { directory = ".open-next/assets", binding = "ASSETS" }
+
+# Optional: incremental cache for ISR / fetch caching.
+# Requires an R2 bucket named "anime-scraper-cache".
+# [[r2_buckets]]
+# binding = "NEXT_INC_CACHE_R2_BUCKET"
+# bucket_name = "anime-scraper-cache"
