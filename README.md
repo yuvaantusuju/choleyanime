@@ -29,7 +29,7 @@ src/
 │   ├── api/
 │   │   ├── search/route.ts        # GET /api/search?q=...
 │   │   ├── episodes/route.ts      # GET /api/episodes?url=...
-│   │   ├── resolve-link/route.ts  # GET /api/resolve-link?url=...
+│   │   ├── resolve-link/route.ts  # GET /api/resolve-link?key=...
 │   │   ├── download/route.ts      # GET /api/download?url=...&anime=...&episode=...
 │   │   └── health/route.ts        # GET /api/health
 │   ├── layout.tsx
@@ -37,6 +37,7 @@ src/
 │   └── globals.css
 └── lib/
     └── animeheaven.ts             # Shared fetch + cheerio helpers
+vercel.json                        # Vercel deployment config (timeouts, region)
 ```
 
 ---
@@ -74,6 +75,61 @@ App runs on <http://localhost:3000>.
 npm run build
 npm run start
 ```
+
+---
+
+## Deploying to Vercel
+
+The app is Vercel-ready out of the box. Just push the repo to GitHub
+and import it on Vercel — no env vars needed.
+
+### `vercel.json` settings
+
+```json
+{
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "functions": {
+    "src/app/api/search/route.ts":       { "maxDuration": 30 },
+    "src/app/api/episodes/route.ts":     { "maxDuration": 30 },
+    "src/app/api/resolve-link/route.ts": { "maxDuration": 30 },
+    "src/app/api/download/route.ts":     { "maxDuration": 60 }
+  }
+}
+```
+
+- **`maxDuration: 30`** — Vercel's free plan caps functions at 10s, Pro at
+  60s, and Enterprise at 900s. If you're on the free plan, drop these to
+  `10` and accept that some long episodes lists will time out.
+- **`regions: ["iad1"]`** — pick the region closest to the upstream site.
+  Change to `hnd1`, `fra1`, etc. as needed.
+- The `download` route **streams** the upstream `.mp4` through the
+  function, so it has to stay within the function timeout. For very long
+  videos you may need to use a signed redirect instead of proxying.
+
+### Common Vercel errors and fixes
+
+| Symptom                                                                | Cause                                                                                          | Fix                                                                                          |
+|------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| `FUNCTION_INVOCATION_TIMEOUT` (status 504)                             | Function ran longer than the Vercel plan allows (free = 10s, pro = 60s).                       | Lower `maxDuration` in `vercel.json`, or upgrade the Vercel plan.                            |
+| Search returns 0 results in the deployed app but works locally        | The upstream site may rate-limit Vercel's egress IPs.                                          | Retry, or deploy with a different region.                                                    |
+| Download button does nothing (no file is saved)                       | The browser blocks the `Content-Disposition` header because of the Vercel CORS or x-frame settings. | Open `/api/health` to confirm the proxy is reachable, then test `/api/download?url=...` directly. |
+| Build fails with `Error: Cannot find module 'cheerio'`                | `cheerio` wasn't installed before the deploy.                                                  | Ensure `cheerio` is in `dependencies` (not `devDependencies`) in `package.json` and re-push.  |
+| `FUNCTION_PAYLOAD_TOO_LARGE` on `/api/download`                       | The streamed `.mp4` exceeded Vercel's per-function body limit (4.5 MB on free).                | Use a different download flow (e.g. a signed URL or chunked redirect).                         |
+
+### Quick debugging checklist
+
+1. Open `https://<your-app>.vercel.app/api/health` — you should get
+   `{"ok":true,...}`.
+2. Open `https://<your-app>.vercel.app/api/search?q=Naruto` — you should
+   get a JSON list.
+3. If step 2 fails, open **Vercel → Project → Logs → Functions** to see
+   the actual error.
+4. Test from your machine with `curl` (not the browser) to bypass any
+   browser CORS issues:
+   ```bash
+   curl "https://<your-app>.vercel.app/api/search?q=Naruto"
+   ```
 
 ---
 

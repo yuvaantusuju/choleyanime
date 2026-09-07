@@ -2,16 +2,25 @@ import * as cheerio from "cheerio";
 
 const BASE_URL = "https://animeheaven.me";
 
+/**
+ * Browser-like headers to avoid basic upstream bot blocks.
+ * Tested against the live site on 2026+.
+ */
 export const ANIMEHEAVEN_HEADERS: Record<string, string> = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
   Accept:
     "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
   "Accept-Language": "en-US,en;q=0.9",
-  "Referer": "https://animeheaven.me/",
+  Referer: "https://animeheaven.me/",
 };
 
-export function absoluteUrl(href: string | undefined | null, base = BASE_URL): string | null {
+export const DEFAULT_FETCH_TIMEOUT_MS = 20_000;
+
+export function absoluteUrl(
+  href: string | undefined | null,
+  base = BASE_URL,
+): string | null {
   if (!href) return null;
   try {
     return new URL(href, base).toString();
@@ -25,9 +34,16 @@ export interface FetchHtmlOptions {
   cookies?: Record<string, string>;
   /** Override the Referer header for a specific URL */
   referer?: string;
+  /** Per-request timeout in ms. Defaults to DEFAULT_FETCH_TIMEOUT_MS. */
+  timeoutMs?: number;
+  /** Optional signal to abort from the caller. */
+  signal?: AbortSignal;
 }
 
-export async function fetchHtml(url: string, opts: FetchHtmlOptions = {}): Promise<string> {
+export async function fetchHtml(
+  url: string,
+  opts: FetchHtmlOptions = {},
+): Promise<string> {
   const headers: Record<string, string> = { ...ANIMEHEAVEN_HEADERS };
   if (opts.referer) headers.Referer = opts.referer;
   if (opts.cookies) {
@@ -37,14 +53,38 @@ export async function fetchHtml(url: string, opts: FetchHtmlOptions = {}): Promi
     headers.Cookie = cookieHeader;
   }
 
-  const res = await fetch(url, {
-    headers,
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
+  const controller = new AbortController();
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  // Chain any caller-provided signal
+  if (opts.signal) {
+    if (opts.signal.aborted) controller.abort();
+    else opts.signal.addEventListener("abort", () => controller.abort());
   }
-  return res.text();
+
+  try {
+    const res = await fetch(url, {
+      headers,
+      cache: "no-store",
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      throw new Error(
+        `Upstream returned ${res.status} ${res.statusText} for ${url}`,
+      );
+    }
+    return await res.text();
+  } catch (err) {
+    if ((err as { name?: string })?.name === "AbortError") {
+      throw new Error(
+        `Request to ${url} timed out after ${timeoutMs}ms.`,
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function parseHtml(html: string) {
