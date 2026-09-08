@@ -407,10 +407,10 @@ export default function Downloader() {
             <h2 className="font-display mt-3 text-4xl leading-[1.05] sm:text-5xl">
               Find your <em>next series</em>
             </h2>
-            <p className="mt-3 max-w-xl text-sm text-[color:var(--ink-soft)] sm:text-base">
+            <p className="mt-3 max-w-xl text-sm text-(--ink-soft) sm:text-base">
               Search by title or paste a direct series URL. We&apos;ll surface a
               complete episode list, then resolve the{" "}
-              <span className="font-semibold text-[color:var(--ink)]">real .mp4</span>{" "}
+              <span className="font-semibold text-(--ink)">real .mp4</span>{" "}
               streams in one click.
             </p>
           </div>
@@ -423,13 +423,13 @@ export default function Downloader() {
         </div>
 
         {/* Search and URL input */}
-        <div className="mt-8 rounded-3xl border rule bg-[color:var(--surface)] p-4 sm:p-5">
+        <div className="mt-8 rounded-3xl border rule bg-(--surface) p-4 sm:p-5">
           <label htmlFor="anime-search" className="eyebrow block">
             Search by title
           </label>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-soft)]" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-(--ink-soft)" />
               <input
                 id="anime-search"
                 type="search"
@@ -465,27 +465,27 @@ export default function Downloader() {
                   <button
                     type="button"
                     onClick={() => selectSearchResult(result)}
-                    className="flex w-full items-center justify-between gap-3 rounded-2xl border rule bg-[color:var(--paper-2)] p-3 text-left transition hover:border-[color:var(--ink)]"
+                    className="flex w-full items-center justify-between gap-3 rounded-2xl border rule bg-(--paper-2) p-3 text-left transition hover:border-(--ink)"
                   >
                     <span className="min-w-0">
                       <span className="block truncate font-display text-lg">
                         {result.title}
                       </span>
-                      <span className="block truncate text-[11px] text-[color:var(--ink-soft)]">
+                      <span className="block truncate text-[11px] text-(--ink-soft)">
                         {result.url}
                       </span>
                     </span>
-                    <ArrowRight className="h-4 w-4 flex-shrink-0 text-[color:var(--ink-soft)]" />
+                    <ArrowRight className="h-4 w-4 shrink-0 text-(--ink-soft)" />
                   </button>
                 </li>
               ))}
             </ul>
           )}
 
-          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-[color:var(--ink-soft)]">
-            <span className="h-px flex-1 bg-[color:var(--rule)]" />
+          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-(--ink-soft)">
+            <span className="h-px flex-1 bg-(--rule)" />
             or paste a URL
-            <span className="h-px flex-1 bg-[color:var(--rule)]" />
+            <span className="h-px flex-1 bg-(--rule)" />
           </div>
 
           <label htmlFor="anime-url" className="eyebrow block">
@@ -493,7 +493,7 @@ export default function Downloader() {
           </label>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-soft)]" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-(--ink-soft)" />
               <input
                 id="anime-url"
                 type="url"
@@ -526,7 +526,7 @@ export default function Downloader() {
               )}
             </button>
           </div>
-          <p className="mt-3 text-[11px] text-[color:var(--ink-soft)]">
+          <p className="mt-3 text-[11px] text-(--ink-soft)">
             Press{" "}
             <kbd
               className="rounded border px-1.5 py-0.5 text-[10px]"
@@ -569,7 +569,7 @@ export default function Downloader() {
                 color: "var(--error)",
               }}
             >
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{episodesError}</span>
             </div>
           )}
@@ -577,14 +577,14 @@ export default function Downloader() {
 
         {/* Episodes */}
         {episodes.length > 0 && (
-          <div className="mt-8 rounded-3xl border rule bg-[color:var(--surface)] p-4 sm:p-5 animate-fade-in-up">
+          <div className="mt-8 rounded-3xl border rule bg-(--surface) p-4 sm:p-5 animate-fade-in-up">
             <div className="flex flex-col gap-3 border-b rule pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="eyebrow">Library</p>
                 <h3 className="font-display mt-1 text-2xl sm:text-3xl">
                   {showTitle || "Episodes"}
                 </h3>
-                <p className="mt-1 text-xs text-[color:var(--ink-soft)]">
+                <p className="mt-1 text-xs text-(--ink-soft)">
                   {episodes.length} episode
                   {episodes.length === 1 ? "" : "s"} · {selectedCount} selected
                   {filter && ` · ${filteredEpisodes.length} shown`}
@@ -592,7 +592,7 @@ export default function Downloader() {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="relative">
-                  <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[color:var(--ink-soft)]" />
+                  <Filter className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--ink-soft)" />
                   <input
                     type="text"
                     placeholder="Filter episodes…"
@@ -637,7 +637,7 @@ export default function Downloader() {
 
             <div className="episode-scroll mt-4 max-h-[55vh] overflow-y-auto pr-1">
               {filteredEpisodes.length === 0 ? (
-                <p className="rounded-2xl border rule bg-[color:var(--paper-2)] p-6 text-center text-sm text-[color:var(--ink-soft)]">
+                <p className="rounded-2xl border rule bg-(--paper-2) p-6 text-center text-sm text-(--ink-soft)">
                   No episodes match your filter.
                 </p>
               ) : (
@@ -650,27 +650,27 @@ export default function Downloader() {
                         className={classNames(
                           "group flex flex-col gap-3 rounded-2xl border p-4 transition",
                           isSelected
-                            ? "border-[color:var(--ink)] bg-[color:var(--paper-2)]"
-                            : "border rule bg-[color:var(--surface)] hover:border-[color:var(--ink)]"
+                            ? "border-(--ink) bg-(--paper-2)"
+                            : "border rule bg-(--surface) hover:border-(--ink)"
                         )}
                       >
                         <label className="flex cursor-pointer items-start gap-3">
                           <input
                             type="checkbox"
-                            className="mt-1 h-4 w-4 rounded border rule accent-[color:var(--ink)]"
+                            className="mt-1 h-4 w-4 rounded border rule accent-(--ink)"
                             checked={isSelected}
                             onChange={() => toggleSelect(ep.key)}
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
-                              <span className="grid h-7 w-7 place-items-center rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]">
+                              <span className="grid h-7 w-7 place-items-center rounded-full bg-(--ink) text-(--paper)">
                                 <Hash className="h-3 w-3" />
                               </span>
                               <p className="truncate font-display text-lg">
                                 {ep.number}
                               </p>
                             </div>
-                            <p className="mt-1 truncate text-[11px] text-[color:var(--ink-soft)]">
+                            <p className="mt-1 truncate text-[11px] text-(--ink-soft)">
                               {ep.showUrl}
                             </p>
                           </div>
@@ -692,7 +692,7 @@ export default function Downloader() {
                             title="Copy gate page URL"
                           >
                             {copiedKey === `gate-${ep.key}` ? (
-                              <ClipboardCheck className="h-3.5 w-3.5 text-[color:var(--success)]" />
+                              <ClipboardCheck className="h-3.5 w-3.5 text-(--success)" />
                             ) : (
                               <Clipboard className="h-3.5 w-3.5" />
                             )}
@@ -711,7 +711,7 @@ export default function Downloader() {
         {downloads.length > 0 && (
           <div
             id="queue"
-            className="mt-8 rounded-3xl border rule bg-[color:var(--surface)] p-4 sm:p-5 animate-fade-in-up"
+            className="mt-8 rounded-3xl border rule bg-(--surface) p-4 sm:p-5 animate-fade-in-up"
           >
             <div className="flex flex-col gap-2 border-b rule pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -719,7 +719,7 @@ export default function Downloader() {
                 <h3 className="font-display mt-1 text-2xl sm:text-3xl">
                   In <em>progress</em>
                 </h3>
-                <p className="mt-1 text-xs text-[color:var(--ink-soft)]">
+                <p className="mt-1 text-xs text-(--ink-soft)">
                   {summary.active} active · {summary.done} completed ·{" "}
                   {summary.errored} failed · {summary.total} total
                 </p>
@@ -749,16 +749,16 @@ export default function Downloader() {
 
         {/* Empty state */}
         {episodes.length === 0 && !loadingEpisodes && !episodesError && (
-          <div className="mt-8 rounded-3xl border border-dashed rule bg-[color:var(--surface)] p-10 text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--paper-2)]">
-              <Film className="h-5 w-5 text-[color:var(--ink-soft)]" />
+          <div className="mt-8 rounded-3xl border border-dashed rule bg-(--surface) p-10 text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-(--paper-2)">
+              <Film className="h-5 w-5 text-(--ink-soft)" />
             </span>
             <h3 className="font-display mt-4 text-2xl">
               No episodes loaded <em>yet</em>
             </h3>
-            <p className="mx-auto mt-2 max-w-md text-sm text-[color:var(--ink-soft)]">
+            <p className="mx-auto mt-2 max-w-md text-sm text-(--ink-soft)">
               Paste an animeheaven.me show URL above and press{" "}
-              <span className="font-semibold text-[color:var(--ink)]">
+              <span className="font-semibold text-(--ink)">
                 Fetch episodes
               </span>{" "}
               to populate your library.
@@ -767,16 +767,16 @@ export default function Downloader() {
         )}
 
         {/* Privacy footer note */}
-        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border rule bg-[color:var(--surface)] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border rule bg-(--surface) p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--paper-2)]">
-              <Link2 className="h-4 w-4 text-[color:var(--ink-soft)]" />
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-(--paper-2)">
+              <Link2 className="h-4 w-4 text-(--ink-soft)" />
             </span>
             <div>
               <p className="font-display text-lg">Privacy first</p>
-              <p className="text-xs text-[color:var(--ink-soft)]">
+              <p className="text-xs text-(--ink-soft)">
                 The proxy adds the upstream{" "}
-                <code className="rounded bg-[color:var(--paper-2)] px-1">
+                <code className="rounded bg-(--paper-2) px-1">
                   Referer
                 </code>{" "}
                 so the CDN serves the file. Your browser talks only to us.
@@ -807,22 +807,22 @@ function DownloadRow({
     switch (entry.status) {
       case "resolving":
       case "queued":
-        return <Loader2 className="h-4 w-4 animate-spin text-[color:var(--accent)]" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-(--accent)" />;
       case "downloading":
-        return <Loader2 className="h-4 w-4 animate-spin text-[color:var(--ink)]" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-(--ink)" />;
       case "done":
-        return <CheckCircle2 className="h-4 w-4 text-[color:var(--success)]" />;
+        return <CheckCircle2 className="h-4 w-4 text-(--success)" />;
       case "error":
-        return <XCircle className="h-4 w-4 text-[color:var(--error)]" />;
+        return <XCircle className="h-4 w-4 text-(--error)" />;
     }
   })();
 
   const tone = (() => {
     switch (entry.status) {
       case "done":
-        return "bg-[color:var(--success-soft)]";
+        return "bg-(--success-soft)";
       case "error":
-        return "bg-[color:var(--error-soft)]";
+        return "bg-(--error-soft)";
       default:
         return "";
     }
@@ -839,7 +839,7 @@ function DownloadRow({
         {icon}
         <div className="min-w-0">
           <p className="truncate font-display text-lg">{entry.episodeLabel}</p>
-          <p className="truncate text-[11px] text-[color:var(--ink-soft)]">
+          <p className="truncate text-[11px] text-(--ink-soft)">
             {entry.message ?? "—"}
           </p>
         </div>
@@ -855,7 +855,7 @@ function DownloadRow({
             >
               {copiedKey === `mp4-${entry.id}` ? (
                 <>
-                  <ClipboardCheck className="h-3.5 w-3.5 text-[color:var(--success)]" />
+                  <ClipboardCheck className="h-3.5 w-3.5 text-(--success)" />
                   Copied
                 </>
               ) : (
@@ -880,7 +880,7 @@ function DownloadRow({
         <button
           type="button"
           onClick={() => onRemove(entry.id)}
-          className="grid h-8 w-8 place-items-center rounded-full border rule bg-[color:var(--surface)] text-[color:var(--ink-soft)] transition hover:border-[color:var(--error)] hover:text-[color:var(--error)]"
+          className="grid h-8 w-8 place-items-center rounded-full border rule bg-(--surface) text-(--ink-soft) transition hover:border-(--error) hover:text-(--error)"
           title="Remove from queue"
         >
           <Trash2 className="h-3.5 w-3.5" />
@@ -899,10 +899,10 @@ function Toasts({ toasts }: { toasts: Toast[] }) {
           className={classNames(
             "pointer-events-auto rounded-2xl border px-3 py-2 text-xs shadow-md backdrop-blur",
             t.tone === "success" &&
-              "bg-[color:var(--success-soft)] text-[color:var(--success)]",
-            t.tone === "error" && "bg-[color:var(--error-soft)] text-[color:var(--error)]",
+              "bg-(--success-soft) text-(--success)",
+            t.tone === "error" && "bg-(--error-soft) text-(--error)",
             t.tone === "info" &&
-              "border rule bg-[color:var(--surface)] text-[color:var(--ink)]"
+              "border rule bg-(--surface) text-(--ink)"
           )}
         >
           {t.text}
