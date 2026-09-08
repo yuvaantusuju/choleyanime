@@ -240,6 +240,7 @@ body {
 }
 
 .episode-scroll {
+  overflow-y: auto;
   scrollbar-color: var(--ink-faint) transparent;
   scrollbar-width: thin;
 }

@@ -1,84 +1,118 @@
-import { NextRequest } from "next/server";
-import { absoluteUrl, ANIMEHEAVEN_HEADERS } from "@/lib/animeheaven";
+import { NextRequest, NextResponse } from "next/server";
+import { DEFAULT_HEADERS } from "@/lib/animeheaven";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-function sanitizeForFilename(name: string): string {
-  return name
-    .replace(/[\\/:*?"<>|]+/g, " ")
+const DOWNLOAD_HEADERS: HeadersInit = {
+  ...DEFAULT_HEADERS,
+  Accept: "*/*",
+  Referer: "https://animeheaven.me/",
+};
+
+function sanitizeFilename(input: string): string {
+  return (input || "episode")
+    .replace(/[\\/:*?"<>|]+/g, "_")
     .replace(/\s+/g, " ")
-    .trim();
+    .trim()
+    .slice(0, 200);
+}
+
+function guessExtension(url: string, contentType: string | null): string {
+  try {
+    const u = new URL(url);
+    const last = u.pathname.split("/").pop() ?? "";
+    const dot = last.lastIndexOf(".");
+    if (dot > -1 && dot < last.length - 1) {
+      return last.slice(dot).toLowerCase();
+    }
+  } catch {
+    /* ignore */
+  }
+  if (contentType) {
+    if (contentType.includes("mp4")) return ".mp4";
+    if (contentType.includes("webm")) return ".webm";
+    if (contentType.includes("octet-stream")) return ".mp4";
+  }
+  return ".mp4";
 }
 
 export async function GET(req: NextRequest) {
-  const rawUrl = req.nextUrl.searchParams.get("url")?.trim();
-  const animeName = req.nextUrl.searchParams.get("anime") ?? "Anime";
-  const episodeLabel = req.nextUrl.searchParams.get("episode") ?? "Episode";
+  const { searchParams } = new URL(req.url);
+  const target = searchParams.get("url");
+  const requestedName = searchParams.get("filename");
 
-  if (!rawUrl) {
-    return new Response(
-      JSON.stringify({ error: "Missing `url` parameter." }),
-      { status: 400, headers: { "content-type": "application/json" } },
+  if (!target) {
+    return NextResponse.json(
+      { error: "Missing required 'url' query parameter." },
+      { status: 400 }
     );
   }
 
-  const target = absoluteUrl(rawUrl) ?? rawUrl;
-
+  let baseUrl: URL;
   try {
-    const upstream = await fetch(target, {
-      headers: {
-        ...ANIMEHEAVEN_HEADERS,
-        Referer: "https://animeheaven.me/",
-      },
+    baseUrl = new URL(target);
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid URL provided." },
+      { status: 400 }
+    );
+  }
+
+  if (!/^https?:$/.test(baseUrl.protocol)) {
+    return NextResponse.json(
+      { error: "Only http(s) URLs are supported." },
+      { status: 400 }
+    );
+  }
+
+  let upstream: Response;
+  try {
+    upstream = await fetch(baseUrl.toString(), {
+      headers: DOWNLOAD_HEADERS,
+      redirect: "follow",
       cache: "no-store",
     });
-
-    if (!upstream.ok || !upstream.body) {
-      return new Response(
-        JSON.stringify({
-          error: `Upstream returned ${upstream.status} ${upstream.statusText}`,
-        }),
-        {
-          status: 502,
-          headers: { "content-type": "application/json" },
-        },
-      );
-    }
-
-    const filename = `${sanitizeForFilename(animeName)}_${sanitizeForFilename(
-      episodeLabel,
-    )}.mp4`;
-
-    // Pass-through common video headers
-    const headers = new Headers();
-    const contentType =
-      upstream.headers.get("content-type") ?? "video/mp4";
-    headers.set("content-type", contentType);
-    headers.set(
-      "content-length",
-      upstream.headers.get("content-length") ?? "",
-    );
-    headers.set("content-disposition", `attachment; filename="${filename}"`);
-    headers.set("cache-control", "no-store");
-    // Surface the resolved URL for debugging
-    headers.set("x-resolved-from", target);
-
-    return new Response(upstream.body, {
-      status: 200,
-      headers,
-    });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return new Response(
-      JSON.stringify({
-        error: "Failed to stream the requested .mp4 file.",
-        details: message,
-      }),
-      {
-        status: 502,
-        headers: { "content-type": "application/json" },
-      },
+    const message = err instanceof Error ? err.message : "Unknown fetch error";
+    return NextResponse.json(
+      { error: `Upstream fetch failed: ${message}` },
+      { status: 502 }
     );
   }
+
+  if (!upstream.ok || !upstream.body) {
+    return NextResponse.json(
+      {
+        error: `Upstream responded with ${upstream.status} ${upstream.statusText}`,
+      },
+      { status: 502 }
+    );
+  }
+
+  const upstreamType = upstream.headers.get("content-type");
+  const ext = guessExtension(baseUrl.toString(), upstreamType);
+  const baseName = sanitizeFilename(requestedName ?? `episode-${Date.now()}`);
+  const filename = baseName.toLowerCase().endsWith(ext)
+    ? baseName
+    : `${baseName}${ext}`;
+
+  const passthroughHeaders: Record<string, string> = {
+    "Content-Type":
+      upstreamType && upstreamType.length > 0
+        ? upstreamType
+        : "application/octet-stream",
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Cache-Control": "no-store",
+  };
+
+  const contentLength = upstream.headers.get("content-length");
+  if (contentLength) passthroughHeaders["Content-Length"] = contentLength;
+
+  // Stream the body straight through. Web ReadableStream is compatible with
+  // Next.js Response in the Node.js runtime.
+  return new Response(upstream.body, {
+    status: 200,
+    headers: passthroughHeaders,
+  });
 }

@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import {
   absoluteUrl,
+  DEFAULT_HEADERS,
   extractShowHash,
   fetchHtml,
   parseHtml,
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 /**
- * Search animeheaven.me.
+ * Search animeheaven.me by title.
  *
  * Strategy:
  *   1. Try the lightweight `fastsearch.php?xhr=1` endpoint first (it powers
@@ -47,11 +48,14 @@ export async function GET(req: NextRequest) {
 
   // --- 1. Try the fast XHR endpoint first ---
   try {
-    const html = await fetchHtml(fastUrl, { timeoutMs: 10_000 });
+    const html = await fetchHtml(fastUrl, {
+      timeoutMs: 10_000,
+      headers: { ...DEFAULT_HEADERS, Referer: "https://animeheaven.me/" },
+    });
     if (html && html.trim().length > 0) {
       const $ = parseHtml(html);
-      $("a[href*='anime.php']").each((_, el) => {
-        const $el = $(el);
+      $("a[href*='anime.php']").each((_: number, el: unknown) => {
+        const $el = $(el as Parameters<typeof $>[0]);
         const href = $el.attr("href") ?? "";
         const url = absoluteUrl(href);
         if (!url) return;
@@ -84,9 +88,12 @@ export async function GET(req: NextRequest) {
   if (results.length === 0) {
     source = fullUrl;
     try {
-      const html = await fetchHtml(fullUrl, { timeoutMs: 15_000 });
+      const html = await fetchHtml(fullUrl, {
+        timeoutMs: 15_000,
+        headers: { ...DEFAULT_HEADERS, Referer: "https://animeheaven.me/" },
+      });
       const $ = parseHtml(html);
-      $(".similarimg").each((_, el) => {
+      $(".similarimg").each((_i: number, el) => {
         const $el = $(el);
         const $a = $el.find("a[href*='anime.php']").first();
         if (!$a.length) return;

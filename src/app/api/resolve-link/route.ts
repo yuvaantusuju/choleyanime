@@ -1,102 +1,110 @@
-import { NextRequest } from "next/server";
-import { absoluteUrl, fetchHtml, parseHtml } from "@/lib/animeheaven";
+import { NextRequest, NextResponse } from "next/server";
+import {
+  absoluteUrl,
+  DEFAULT_HEADERS,
+  fetchHtml,
+  parseHtml,
+} from "@/lib/animeheaven";
 
-export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-/**
- * The site uses a `key` cookie to remember the active episode.
- * The `/episodes` API returns a `key` (the hash `id` of the gate anchor),
- * and we must set it as a `key=<key>` cookie before requesting `gate.php`.
- */
 export async function GET(req: NextRequest) {
-  // Accept either a gate URL (legacy) OR a key hash
-  const raw = req.nextUrl.searchParams.get("url")?.trim();
-  const keyParam = req.nextUrl.searchParams.get("key")?.trim();
+  const { searchParams } = new URL(req.url);
+  const target = searchParams.get("url");
 
-  if (!raw && !keyParam) {
-    return Response.json(
-      { error: "Missing gate URL parameter `url` or `key`." },
-      { status: 400 },
+  if (!target) {
+    return NextResponse.json(
+      { error: "Missing required 'url' query parameter." },
+      { status: 400 }
     );
   }
 
-  // Derive a key from a URL if necessary. The legacy `gate.php?...` form is
-  // no longer used by the current site, so this is a best-effort fallback.
-  let key = keyParam ?? "";
-  if (!key && raw) {
-    try {
-      const u = new URL(raw, "https://animeheaven.me");
-      key =
-        u.searchParams.get("key") ??
-        u.searchParams.get("k") ??
-        u.searchParams.get("id") ??
-        "";
-    } catch {
-      // ignore
-    }
-    if (!key) key = raw; // last resort — treat the whole string as a key
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(target);
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid URL provided." },
+      { status: 400 }
+    );
   }
 
-  const gateUrl = "https://animeheaven.me/gate.php";
+  if (!/^https?:$/.test(baseUrl.protocol)) {
+    return NextResponse.json(
+      { error: "Only http(s) URLs are supported." },
+      { status: 400 }
+    );
+  }
 
   try {
-    const html = await fetchHtml(gateUrl, {
-      cookies: { key },
-      referer: "https://animeheaven.me/",
+    const html = await fetchHtml(baseUrl.toString(), {
+      timeoutMs: 15_000,
+      headers: { ...DEFAULT_HEADERS, Referer: "https://animeheaven.me/" },
     });
     const $ = parseHtml(html);
 
-    // The gate page exposes a list of <source> elements with the direct .mp4
-    // URLs. The first one is the primary mirror (cz.). Fallbacks (ct., ck.)
-    // are tried by the site on error.
-    const mirrors: string[] = [];
-    $("source[src*='.mp4']").each((_, el) => {
-      const src = $(el).attr("src");
-      const abs = absoluteUrl(src);
-      if (abs && !mirrors.includes(abs)) mirrors.push(abs);
+    // The direct mp4 link lives inside <a> wrapping div.boxitem.bc2.c1.mar0
+    // The container linetitle2.c above gives us the page heading context.
+    const $candidates = $("a:has(div.boxitem.bc2.c1.mar0)");
+    const candidates: { href: string; label: string }[] = [];
+
+    $candidates.each((_i, el) => {
+      const $a = $(el);
+      const href = $a.attr("href") ?? "";
+      if (!href) return;
+      const label = $a.find("div.boxitem.bc2.c1.mar0").text().trim();
+      const abs = absoluteUrl(href, baseUrl.toString());
+      if (!abs) return;
+      candidates.push({
+        href: abs,
+        label,
+      });
     });
 
-    // Last-ditch: any anchor with .mp4 href inside .linetitle2.c
-    if (mirrors.length === 0) {
-      $(".linetitle2.c a[href*='.mp4']").each((_, el) => {
-        const href = $(el).attr("href");
-        const abs = absoluteUrl(href);
-        if (abs && !mirrors.includes(abs)) mirrors.push(abs);
+    // Fallback: any anchor whose href ends in .mp4
+    if (candidates.length === 0) {
+      $("a[href$='.mp4']").each((_i, el) => {
+        const $a = $(el);
+        const href = $a.attr("href") ?? "";
+        if (!href) return;
+        const abs = absoluteUrl(href, baseUrl.toString());
+        if (!abs) return;
+        candidates.push({
+          href: abs,
+          label: $a.text().trim(),
+        });
       });
     }
 
-    if (mirrors.length === 0) {
-      return Response.json(
+    if (candidates.length === 0) {
+      return NextResponse.json(
         {
+          ok: false,
           error:
-            "Could not find a direct .mp4 stream on the gate page. The site markup may have changed, or the key may be invalid/expired.",
+            "Could not find a direct .mp4 link on the gate page. " +
+            "The page layout may have changed or the episode is unavailable.",
         },
-        { status: 404 },
+        { status: 404 }
       );
     }
 
-    return Response.json({
+    // Prefer the candidate explicitly labelled as the mp4 download.
+    const best =
+      candidates.find((c) => /mp4/i.test(c.label)) ?? candidates[0];
+
+    return NextResponse.json({
       ok: true,
-      source: gateUrl,
-      key,
-      gateUrl,
-      mirrors,
-      candidates: mirrors.map((href, index) => ({
-        href,
-        label: `Mirror ${index + 1}`,
-      })),
-      label: "Resolved episode stream",
-      mp4Url: mirrors[0],
+      source: baseUrl.toString(),
+      mp4Url: best.href,
+      label: best.label,
+      candidates,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return Response.json(
-      {
-        error: "Failed to resolve the gate page to an .mp4 stream.",
-        details: message,
-      },
-      { status: 502 },
+    const message = err instanceof Error ? err.message : "Unknown resolution error";
+    return NextResponse.json(
+      { error: `Failed to resolve stream link: ${message}` },
+      { status: 502 }
     );
   }
 }

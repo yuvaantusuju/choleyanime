@@ -1,275 +1,267 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   absoluteUrl,
-  ANIMEHEAVEN_HEADERS,
+  DEFAULT_HEADERS,
+  extractShowHash,
   fetchHtml,
   parseHtml,
-  type Episode,
+  type SearchResult,
 } from "@/lib/animeheaven";
 
-export const dynamic = "force-dynamic";
-// Use Node.js runtime (the @opennextjs/cloudflare adapter supports this).
 export const runtime = "nodejs";
-// Cloudflare Workers has a 30s CPU time limit on paid plans. Vercel uses
-// maxDuration; Cloudflare ignores it but the value is harmless.
-export const maxDuration = 60;
+export const dynamic = "force-dynamic";
+
+type Episode = {
+  index: number;
+  label: string;
+  number: number | null;
+  href: string;
+  gateHref: string;
+  fullUrl: string;
+  hash: string | null;
+};
+
+function extractEpisodeNumber(text: string): number | null {
+  // Try to pull the first number from common patterns like "Episode 12", "12", "EP 12", etc.
+  const match = text.match(/(\d+)/);
+  if (!match) return null;
+  const n = parseInt(match[1], 10);
+  return Number.isFinite(n) ? n : null;
+}
 
 /**
- * Extracts the episode list from an animeheaven.me show page.
- *
- * Two ways to call it:
- *   1. `?url=https://animeheaven.me/anime.php?HASH`  (full URL)
- *   2. `?id=HASH`  (shorter form — server builds the URL)
- *
- * Multiple parsing strategies are tried in order of specificity because
- * the site has shipped several layouts over time and we want to remain
- * robust against future tweaks.
- *
- *  1. `a[id][href*='gate.php']` — current layout (each `<a>` has a hash
- *     `id` that doubles as the `key` cookie for gate.php).
- *  2. `a[onclick*='gatea(']` — same as above but matched by the
- *     JavaScript handler instead of href.
- *  3. `.trackep, .trackep0` containers — last-resort scan of any element
- *     that looks like an episode row.
- *
- * The route also retries the upstream fetch with a fallback strategy if
- * the first attempt fails — this helps when Vercel's egress IPs are
- * being rate-limited but a second attempt with a slightly different
- * request shape works.
+ * Convenience: episodes route can also accept a show hash directly. This is
+ * useful when the UI has selected a result from /api/search and only stored
+ * the `id` (the hash) — we can rebuild the canonical show URL on the server.
  */
-export async function GET(req: NextRequest) {
-  const raw = req.nextUrl.searchParams.get("url")?.trim();
-  const id = req.nextUrl.searchParams.get("id")?.trim();
-
-  if (!raw && !id) {
-    return Response.json(
-      { error: "Missing `url` or `id` query parameter." },
-      { status: 400 },
-    );
+function resolveShowUrl(input: string): string | null {
+  if (absoluteUrl(input)) return absoluteUrl(input);
+  // If it looks like just a hash, try to build a show URL.
+  if (/^[a-zA-Z0-9]+$/.test(input)) {
+    return `https://animeheaven.me/anime.php?${input}`;
   }
-
-  // If the client only sent `id`, normalize it. The id may arrive in any
-  // of these forms:
-  //   - "wn1fk"                       (just the hash)
-  //   - "/anime.php?wn1fk"            (from the search route's raw href)
-  //   - "anime.php?wn1fk"             (relative)
-  //   - "https://animeheaven.me/anime.php?wn1fk"  (already absolute)
-  // We need a clean `https://animeheaven.me/anime.php?HASH` in all cases.
-  let showUrl: string;
-  if (raw) {
-    showUrl = absoluteUrl(raw) ?? raw;
-  } else {
-    const cleaned = (id ?? "")
-      .replace(/^https?:\/\/[^/]+/i, "")  // strip scheme + host
-      .replace(/^\/+/, "")                 // strip leading slashes
-      .replace(/^anime\.php\?/, "")        // strip leading "anime.php?"
-      .trim();
-    showUrl = `https://animeheaven.me/anime.php?${encodeURIComponent(cleaned)}`;
-  }
-
-  // --- Fetch with retry ---
-  const { html, fetchAttempt, fetchError } = await fetchWithRetry(showUrl);
-
-  if (!html) {
-    return Response.json(
-      {
-        error: "Failed to fetch the show page from animeheaven.me.",
-        details: fetchError ?? "Unknown upstream error",
-        showUrl,
-        hint:
-          "The upstream may be rate-limiting, down, or blocking Vercel's egress IPs. " +
-          "Try again in a few minutes, or deploy to a different region.",
-        attempts: fetchAttempt,
-      },
-      { status: 502 },
-    );
-  }
-
-  // Sanity check: the response should contain episode markers
-  if (!/[gatea|trackep|gate\.php]/i.test(html)) {
-    return Response.json(
-      {
-        error: "Upstream returned a page with no episode markers.",
-        details:
-          "The HTML fetched from animeheaven.me does not contain the expected episode anchors. " +
-          "The site may be serving a CAPTCHA, maintenance page, or different layout.",
-        showUrl,
-        upstreamSize: html.length,
-        upstreamSnippet: html.slice(0, 500),
-        attempts: fetchAttempt,
-        hint:
-          "Open the showUrl in a browser to see what the site is currently serving.",
-      },
-      { status: 502 },
-    );
-  }
-
-  const $ = parseHtml(html);
-
-  // --- Show title ---
-  const showTitle =
-    $(".infotitle").first().text().trim() ||
-    $(".linetitle.c").first().text().trim() ||
-    $("h1").first().text().trim() ||
-    $("title").first().text().trim() ||
-    "Unknown Show";
-
-  // --- Episode count from the info bar ---
-  let totalEpisodes: number | null = null;
-  const epInfoText = $(".infoyear").first().text();
-  const m = epInfoText.match(/Episodes:\s*(\d+)/i);
-  if (m) totalEpisodes = parseInt(m[1], 10);
-
-  // --- Parse episode rows ---
-  const { episodes, parser } = extractEpisodes($, showUrl);
-
-  // De-duplicate by key
-  const seen = new Set<string>();
-  const unique = episodes.filter((e) => {
-    if (seen.has(e.key)) return false;
-    seen.add(e.key);
-    return true;
-  });
-
-  // Diagnostic payload
-  const body = JSON.stringify({
-    ok: true,
-    showTitle,
-    title: showTitle,
-    showUrl,
-    totalEpisodes,
-    count: unique.length,
-    parser,
-    upstreamSize: html.length,
-    attempts: fetchAttempt,
-    episodes: unique,
-  });
-
-  return new Response(body, {
-    status: 200,
-    headers: {
-      "content-type": "application/json",
-      "cache-control": "public, max-age=300, s-maxage=300",
-      "x-anime-scraper": "episodes",
-      "x-anime-scraper-show": showTitle.slice(0, 100),
-      "x-anime-scraper-count": String(unique.length),
-      "x-anime-scraper-parser": parser,
-      "x-anime-scraper-attempts": String(fetchAttempt),
-    },
-  });
+  return null;
 }
 
-async function fetchWithRetry(
-  url: string,
-): Promise<{ html: string | null; fetchAttempt: number; fetchError: string | null }> {
-  // Attempt 1: full browser-like headers
-  try {
-    const html = await fetchHtml(url, { timeoutMs: 25_000 });
-    if (html && html.length > 1000) {
-      return { html, fetchAttempt: 1, fetchError: null };
-    }
-  } catch (err) {
-    // fall through to attempt 2
-    const firstError = err instanceof Error ? err.message : "Unknown error";
-    // Attempt 2: minimal headers, longer timeout
+/**
+ * Extract the per-episode hash from an animeheaven <a> element. The gate
+ * URL is built client-side via the inline `gateh('HASH')` JavaScript
+ * handler, so the `href` is just `gate.php` and the hash is hidden in the
+ * `onmouseover` / `onclick` / `id` attributes.
+ *
+ * Returns the hash string or null when it can't be found.
+ */
+function extractEpisodeHash($a: ReturnType<ReturnType<typeof parseHtml>>): string | null {
+  // 1. Try onmouseover="gateh('HASH')" or onclick="gatea('HASH')"
+  const onmouseover = $a.attr("onmouseover") ?? "";
+  const onclick = $a.attr("onclick") ?? "";
+  for (const attr of [onmouseover, onclick]) {
+    const m = attr.match(/(?:gateh|gatea)\s*\(\s*['"]([a-zA-Z0-9]+)['"]/);
+    if (m) return m[1];
+  }
+  // 2. Try the element id (sometimes the hash is the id directly)
+  const id = $a.attr("id") ?? "";
+  if (/^[a-zA-Z0-9]{16,}$/.test(id)) return id;
+  // 3. Try a real href like "gate.php?HASH"
+  const href = $a.attr("href") ?? "";
+  if (href && href !== "gate.php" && !href.endsWith("/gate.php")) {
     try {
-      const res = await fetch(url, {
-        headers: {
-          "User-Agent": ANIMEHEAVEN_HEADERS["User-Agent"],
-          Accept: ANIMEHEAVEN_HEADERS.Accept,
-        },
-        cache: "no-store",
-        signal: AbortSignal.timeout(30_000),
-      });
-      if (!res.ok) {
-        return { html: null, fetchAttempt: 2, fetchError: `${firstError}; retry got ${res.status}` };
+      const u = new URL(href, "https://animeheaven.me/");
+      for (const v of u.searchParams.values()) {
+        if (/^[a-zA-Z0-9]{8,}$/.test(v)) return v;
       }
-      const html = await res.text();
-      if (html && html.length > 1000) {
-        return { html, fetchAttempt: 2, fetchError: null };
-      }
-      return { html: null, fetchAttempt: 2, fetchError: `${firstError}; retry returned empty body` };
-    } catch (err2) {
-      return {
-        html: null,
-        fetchAttempt: 2,
-        fetchError: `${firstError}; retry: ${err2 instanceof Error ? err2.message : "unknown"}`,
-      };
+    } catch {
+      /* ignore */
     }
   }
-  return { html: null, fetchAttempt: 1, fetchError: "Empty response from upstream" };
+  return null;
 }
 
-function detectParserUsed($: ReturnType<typeof parseHtml>): string {
-  if ($("a[id][href*='gate.php']").length > 0) return "a[id][href*='gate.php']";
-  if ($("a[onclick*='gatea(']").length > 0) return "a[onclick*='gatea(']";
-  if ($(".trackep, .trackep0").length > 0) return ".trackep, .trackep0";
-  return "none";
+function buildGateUrl(hash: string, baseUrl: URL): string {
+  // The upstream script writes a query-string hash onto the page (e.g.
+  // `gate.php?HASH`) when the user clicks the link. The hash is also the
+  // element id on the show page. Construct the canonical gate URL.
+  return `${baseUrl.origin}/gate.php?${hash}`;
 }
 
-function extractEpisodes(
-  $: ReturnType<typeof parseHtml>,
-  showUrl: string,
-): { episodes: Episode[]; parser: string } {
-  const episodes: Episode[] = [];
-  const seen = new Set<string>();
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const target = searchParams.get("url");
+  const id = searchParams.get("id");
 
-  const push = (key: string | null | undefined, number: string | null) => {
-    if (!key) return;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const cleaned = (number ?? "").replace(/\s+/g, " ").trim();
-    episodes.push({
-      id: key,
-      key,
-      number: cleaned || `Episode ${episodes.length + 1}`,
-      title: cleaned || `Episode ${episodes.length + 1}`,
-      showUrl,
+  if (!target && !id) {
+    return NextResponse.json(
+      { error: "Missing required 'url' or 'id' query parameter." },
+      { status: 400 }
+    );
+  }
+
+  const source = target
+    ? resolveShowUrl(target)
+    : resolveShowUrl(`https://animeheaven.me/anime.php?${id}`);
+
+  if (!source) {
+    return NextResponse.json(
+      { error: "Invalid URL or id provided." },
+      { status: 400 }
+    );
+  }
+
+  let baseUrl: URL;
+  try {
+    baseUrl = new URL(source);
+  } catch {
+    return NextResponse.json(
+      { error: "Invalid URL provided." },
+      { status: 400 }
+    );
+  }
+
+  if (!/^https?:$/.test(baseUrl.protocol)) {
+    return NextResponse.json(
+      { error: "Only http(s) URLs are supported." },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const html = await fetchHtml(baseUrl.toString(), {
+      timeoutMs: 15_000,
+      headers: { ...DEFAULT_HEADERS, Referer: "https://animeheaven.me/" },
     });
-  };
+    const $ = parseHtml(html);
 
-  // Strategy 1: anchor with id and gate.php href
-  $("a[id][href*='gate.php']").each((_, el) => {
-    const $el = $(el);
-    const key = $el.attr("id")?.trim() || null;
-    const number = $el.find(".watch2").first().text().trim() || null;
-    push(key, number);
-  });
-
-  if (episodes.length > 0) {
-    return { episodes, parser: "a[id][href*='gate.php']" };
-  }
-
-  // Strategy 2: anchor with onclick="gatea(...)"
-  $("a[onclick*='gatea(']").each((_, el) => {
-    const $el = $(el);
-    const onclick = $el.attr("onclick") ?? "";
-    const m = onclick.match(/gatea\(\s*["']([a-f0-9]+)["']\s*\)/i);
-    const key = m?.[1] ?? $el.attr("id")?.trim() ?? null;
-    const number =
-      $el.find(".watch2").first().text().trim() ||
-      $el.find(".watch1").first().text().trim() ||
-      null;
-    push(key, number);
-  });
-
-  if (episodes.length > 0) {
-    return { episodes, parser: "a[onclick*='gatea(']" };
-  }
-
-  // Strategy 3: scan .trackep / .trackep0 containers directly
-  $(".trackep, .trackep0").each((_, el) => {
-    const $el = $(el);
-    const $parent = $el.parent("a[id]").first();
-    let key = $parent.attr("id")?.trim() || null;
-    if (!key) {
-      const onclick = $parent.attr("onclick") ?? "";
-      const m2 = onclick.match(/gatea\(\s*["']([a-f0-9]+)["']\s*\)/i);
-      key = m2?.[1] ?? null;
+    // The show title lives in a few possible places — the page <title>,
+    // an <meta property="og:title"> tag, or sometimes an <h1>. We deliberately
+    // avoid `div.linetitle2.c2` because on the current animeheaven layout
+    // that element wraps the entire episode list, not the title.
+    let showTitle = "";
+    const ogTitle = $('meta[property="og:title"]').attr("content");
+    if (ogTitle) showTitle = ogTitle.trim();
+    if (!showTitle) {
+      const pageTitle = $("title").first().text().trim();
+      showTitle = pageTitle
+        .replace(/\s*\|\s*AnimeHeaven.*$/i, "")
+        .replace(/\s*-\s*AnimeHeaven.*$/i, "")
+        .replace(/\s+Anime\s*$/i, "")
+        .trim();
     }
-    const number = $el.find(".watch2").first().text().trim() || null;
-    push(key, number);
-  });
+    if (!showTitle) {
+      const h1 = $("h1").first().text().trim();
+      if (h1) showTitle = h1;
+    }
+    if (!showTitle) showTitle = "Unknown Show";
 
-  return { episodes, parser: ".trackep, .trackep0" };
+    const episodes: Episode[] = [];
+    const seen = new Set<string>();
+
+    // -----------------------------------------------------------------
+    // Strategy 1: find every <a> on the page that has a `gateh(...)` /
+    // `gatea(...)` handler or wraps a `div.trackep` container. These are
+    // the individual episode entries on the show page.
+    // -----------------------------------------------------------------
+    const $anchors = $("a").filter((_i, el) => {
+      const $a = $(el);
+      const hasGateHandler =
+        /gate[ah]\s*\(/.test($a.attr("onmouseover") ?? "") ||
+        /gate[ah]\s*\(/.test($a.attr("onclick") ?? "") ||
+        $a.find("div[class*='trackep']").length > 0;
+      return hasGateHandler;
+    });
+
+    $anchors.each((_i, el) => {
+      const $a = $(el);
+
+      // The hash is the actual gate key for this episode.
+      const hash = extractEpisodeHash($a);
+      if (!hash) return;
+
+      const fullUrl = buildGateUrl(hash, baseUrl);
+      if (seen.has(fullUrl)) return;
+      seen.add(fullUrl);
+
+      // The episode number lives in the FIRST <div class="watch2"> inside.
+      // animeheaven splits the title and the number into two child divs:
+      //   <div class="watch1">Episode</div>
+      //   <div class="watch2">1177</div>
+      //   <div class="watch1">1 d ago</div>
+      // so the number is the text of the inner-most watch2 div.
+      const $innerWatch2 = $a
+        .find("div[class*='trackep'] div[class*='watch2']")
+        .last();
+      let numberText = $innerWatch2.text().trim();
+
+      // Some pages use a single div for the whole "Episode 1177" string.
+      if (!numberText) {
+        const $anyWatch2 = $a.find("div[class*='watch2']").last();
+        numberText = $anyWatch2.text().trim();
+      }
+
+      // Build the label.
+      const num = extractEpisodeNumber(numberText);
+      const label = numberText
+        ? `Episode ${num ?? episodes.length + 1}`
+        : `Episode ${episodes.length + 1}`;
+
+      episodes.push({
+        index: episodes.length + 1,
+        label,
+        number: num,
+        href: hash,
+        gateHref: fullUrl,
+        fullUrl,
+        hash,
+      });
+    });
+
+    // -----------------------------------------------------------------
+    // Strategy 2: fallback — if the page uses a different markup, scan
+    // for any anchor that points at gate.php with a real ?hash= payload.
+    // -----------------------------------------------------------------
+    if (episodes.length === 0) {
+      $("a[href*='gate.php?']").each((_i, el) => {
+        const $a = $(el);
+        const rawHref = $a.attr("href") ?? "";
+        if (!rawHref) return;
+        const fullUrl = absoluteUrl(rawHref, baseUrl.toString());
+        if (!fullUrl) return;
+        if (seen.has(fullUrl)) return;
+        seen.add(fullUrl);
+
+        const text = $a.text().replace(/\s+/g, " ").trim();
+        const num = extractEpisodeNumber(text);
+        episodes.push({
+          index: episodes.length + 1,
+          label: text || `Episode ${episodes.length + 1}`,
+          number: num,
+          href: rawHref,
+          gateHref: fullUrl,
+          fullUrl,
+          hash: null,
+        });
+      });
+    }
+
+    // Also surface the show id so the UI can keep state across navigation.
+    const showId =
+      extractShowHash(target) ?? extractShowHash(source) ?? id ?? null;
+
+    return NextResponse.json({
+      ok: true,
+      source: baseUrl.toString(),
+      id: showId,
+      title: showTitle,
+      count: episodes.length,
+      episodes,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown scraping error";
+    return NextResponse.json(
+      { error: `Failed to scrape episodes: ${message}` },
+      { status: 502 }
+    );
+  }
 }
+
+// Re-export the SearchResult type for client convenience (typed in the lib).
+export type { SearchResult };

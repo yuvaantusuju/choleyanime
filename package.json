@@ -1,35 +1,30 @@
 {
-  "name": "CholeyAnime",
+  "name": "choleyanime",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.6",
-    "cheerio": "^1.0.0",
-    "lucide-react": "^0.460.0",
-    "next": "^16.3.4",
+    "@types/cheerio": "^0.22.35",
+    "cheerio": "^1.2.0",
+    "lucide-react": "^1.41.0",
+    "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260907.1",
     "@tailwindcss/postcss": "4.1.17",
     "@types/node": "22.19.15",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",
-    "eslint-config-next": "^16.3.4",
+    "eslint-config-next": "16.2.6",
     "postcss": "8.5.8",
     "tailwindcss": "4.1.17",
-    "typescript": "5.9.3",
-    "wrangler": "^4.129.0"
+    "typescript": "5.9.3"
   }
 }
