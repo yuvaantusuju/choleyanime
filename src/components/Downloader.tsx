@@ -365,9 +365,6 @@ export default function Downloader() {
             <div className="min-w-0 flex-1">
               <p className="eyebrow">Active show</p>
               <p className="truncate font-display text-lg">{activeShow.title}</p>
-              <p className="truncate text-[11px] text-(--ink-soft)">
-                {activeShow.url}
-              </p>
             </div>
             <button
               type="button"

@@ -390,14 +390,6 @@ export default function AnimeDownloader() {
               )}
             </button>
           </div>
-          <p className="mt-3 text-xs text-slate-500">
-            Tip: press <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">⌘</kbd>
-            <span className="px-1">/</span>
-            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">Ctrl</kbd>
-            <span className="px-1">+</span>
-            <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">Enter</kbd>
-            to fetch.
-          </p>
 
           {episodesError && (
             <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
@@ -476,9 +468,6 @@ export default function AnimeDownloader() {
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-medium text-white">
                             {ep.label}
-                          </p>
-                          <p className="truncate text-[11px] text-slate-500">
-                            {ep.gateHref}
                           </p>
                         </div>
                       </label>
