@@ -12,15 +12,15 @@ export function About() {
               <em>for readers.</em>
             </h2>
           </div>
-          <div className="space-y-5 text-base leading-relaxed text-[color:var(--ink-soft)]">
+          <div className="space-y-5 text-base leading-relaxed text-(--ink-soft)">
             <p>
               CholeyAnime grew out of the same frustration that gave us
               CholeyManhwa: too many broken downloaders, too many popups, and
-              too many sites that pretend a "play" button is the same as a
-              "save" button.
+              too many sites that pretend a &quot;play&quot; button is the same as a
+              &quot;save&quot; button.
             </p>
             <p>
-              We scrape the page server-side, resolve the direct video stream
+              We wanted a tool that would take a name, fetch the episodes
               for you, and hand the file back as a real download — no
               extensions to install, no accounts to create, no surprises.
             </p>

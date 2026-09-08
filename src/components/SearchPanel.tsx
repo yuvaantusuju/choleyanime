@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   AlertCircle,
   ArrowRight,
@@ -37,23 +37,22 @@ export function SearchPanel({ onSelect }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [response, setResponse] = useState<SearchResponse | null>(null);
-  const [recent, setRecent] = useState<string[]>([]);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const [recent, setRecent] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
 
-  // Hydrate recent queries from localStorage.
-  useEffect(() => {
     try {
       const raw = localStorage.getItem("choleyanime-recent");
-      if (raw) {
-        const parsed = JSON.parse(raw) as unknown;
-        if (Array.isArray(parsed)) {
-          setRecent(parsed.filter((x): x is string => typeof x === "string"));
-        }
-      }
+      if (!raw) return [];
+
+      const parsed = JSON.parse(raw) as unknown;
+      return Array.isArray(parsed)
+        ? parsed.filter((x): x is string => typeof x === "string")
+        : [];
     } catch {
-      /* ignore */
+      return [];
     }
-  }, []);
+  });
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const persistRecent = useCallback((q: string) => {
     setRecent((prev) => {
@@ -117,18 +116,18 @@ export function SearchPanel({ onSelect }: Props) {
   );
 
   return (
-    <div className="rounded-3xl border rule bg-[color:var(--surface)] p-4 sm:p-6">
+    <div className="rounded-3xl border rule bg-(--surface) p-4 sm:p-6">
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <label htmlFor="anime-name" className="eyebrow">
             Anime title
           </label>
           <span className="tag hidden sm:inline-flex">
-            <Sparkles className="h-3.5 w-3.5" /> Powered by animeheaven.me
+            <Sparkles className="h-3.5 w-3.5" /> Powered by CholeyGang.
           </span>
         </div>
         <div className="relative">
-          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--ink-soft)]" />
+          <SearchIcon className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-(--ink-soft)" />
           <input
             id="anime-name"
             ref={inputRef}
@@ -136,7 +135,7 @@ export function SearchPanel({ onSelect }: Props) {
             inputMode="search"
             spellCheck={false}
             autoComplete="off"
-            placeholder='e.g. "naruto", "bleach", "spy x family"…'
+            placeholder='Enter a title'
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="input-field"
@@ -148,7 +147,7 @@ export function SearchPanel({ onSelect }: Props) {
                 setQuery("");
                 inputRef.current?.focus();
               }}
-              className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-[color:var(--ink-soft)] hover:bg-[color:var(--paper-2)] hover:text-[color:var(--ink)]"
+              className="absolute right-3 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full text-(--ink-soft) hover:bg-(--paper-2) hover:text-(--ink)"
               aria-label="Clear"
             >
               <X className="h-3.5 w-3.5" />
@@ -173,7 +172,7 @@ export function SearchPanel({ onSelect }: Props) {
           </button>
           {recent.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">
+              <span className="text-[10px] uppercase tracking-[0.22em] text-(--ink-soft)">
                 Recent:
               </span>
               {recent.map((q) => (
@@ -184,7 +183,7 @@ export function SearchPanel({ onSelect }: Props) {
                     setQuery(q);
                     void runSearch(q);
                   }}
-                  className="rounded-full border rule bg-[color:var(--paper-2)] px-2.5 py-1 text-[11px] text-[color:var(--ink-soft)] transition hover:border-[color:var(--ink)] hover:text-[color:var(--ink)]"
+                  className="rounded-full border rule bg-(--paper-2) px-2.5 py-1 text-[11px] text-(--ink-soft) transition hover:border-(--ink) hover:text-(--ink)"
                 >
                   {q}
                 </button>
@@ -204,21 +203,21 @@ export function SearchPanel({ onSelect }: Props) {
             color: "var(--error)",
           }}
         >
-          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Initial / empty state */}
       {!response && !loading && !error && (
-        <div className="mt-6 rounded-2xl border border-dashed rule bg-[color:var(--paper)] p-6 text-center">
-          <span className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-[color:var(--paper-2)]">
-            <Film className="h-4 w-4 text-[color:var(--ink-soft)]" />
+        <div className="mt-6 rounded-2xl border border-dashed rule bg-(--paper) p-6 text-center">
+          <span className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-(--paper-2)">
+            <Film className="h-4 w-4 text-(--ink-soft)" />
           </span>
           <p className="font-display mt-3 text-xl">
             Type a title to <em>begin</em>
           </p>
-          <p className="mt-1 text-xs text-[color:var(--ink-soft)]">
+          <p className="mt-1 text-xs text-(--ink-soft)">
             Try the name in English or romaji — the search will return matching
             shows with cover art and direct links.
           </p>
@@ -234,7 +233,7 @@ export function SearchPanel({ onSelect }: Props) {
             </p>
             {response.note && (
               <p
-                className="text-[10px] text-[color:var(--ink-faint)]"
+                className="text-[10px] text-(--ink-faint)"
                 title={response.note}
               >
                 {response.note}
@@ -243,7 +242,7 @@ export function SearchPanel({ onSelect }: Props) {
           </div>
 
           {response.count === 0 ? (
-            <p className="mt-4 rounded-2xl border rule bg-[color:var(--paper-2)] p-6 text-center text-sm text-[color:var(--ink-soft)]">
+            <p className="mt-4 rounded-2xl border rule bg-(--paper-2) p-6 text-center text-sm text-[color:var(--ink-soft)]">
               No shows matched “{response.query}”. Try a different spelling.
             </p>
           ) : (

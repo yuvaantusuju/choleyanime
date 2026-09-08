@@ -386,12 +386,12 @@ export function EpisodeList({
                         />
                       )}
                     </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[color:var(--ink-soft)]">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-(--ink-soft)">
                       <span className="inline-flex items-center gap-1">
-                        <span className="font-mono uppercase tracking-wider text-[color:var(--ink-faint)]">
+                        <span className="font-mono uppercase tracking-wider text-(--ink-faint)">
                           EP
                         </span>
-                        <span className="font-semibold text-[color:var(--ink)]">
+                        <span className="font-semibold text-(--ink)">
                           {episodeNumber}
                         </span>
                       </span>
@@ -406,7 +406,7 @@ export function EpisodeList({
                   </div>
 
                   {/* Right: actions */}
-                  <div className="flex flex-shrink-0 flex-wrap items-center gap-1.5 sm:flex-nowrap">
+                  <div className="flex shrink-0 flex-wrap items-center gap-1.5 sm:flex-nowrap">
                     {run?.mp4Url && (
                       <a
                         href={buildDownloadUrl(
@@ -434,28 +434,6 @@ export function EpisodeList({
                           : "Download"}
                       </span>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onDownloadOne(ep)}
-                      className="btn-pill btn-outline py-1.5 text-xs"
-                      title="Open gate page"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onCopy(ep.fullUrl, `gate-${ep.fullUrl}-${i}`)
-                      }
-                      className="btn-pill btn-outline py-1.5 text-xs"
-                      title="Copy gate page URL"
-                    >
-                      {copiedKey === `gate-${ep.fullUrl}-${i}` ? (
-                        <ClipboardCheck className="h-3.5 w-3.5 text-[color:var(--success)]" />
-                      ) : (
-                        <Clipboard className="h-3.5 w-3.5" />
-                      )}
-                    </button>
                   </div>
                 </li>
               );
@@ -466,7 +444,7 @@ export function EpisodeList({
 
       {/* Footer summary */}
       <div
-        className="flex items-center justify-between border-t px-5 py-3 text-[11px] text-[color:var(--ink-soft)]"
+        className="flex items-center justify-between border-t px-5 py-3 text-[11px] text-(--ink-soft)"
         style={{
           borderColor: "var(--rule)",
           background: "var(--paper-2)",
@@ -477,7 +455,7 @@ export function EpisodeList({
           {episodes.length === 1 ? "" : "s"}
         </span>
         <span className="hidden items-center gap-2 sm:flex">
-          Tip: use the <strong className="font-semibold text-[color:var(--ink)]">Range</strong> button
+          Tip: use the <strong className="font-semibold text-(--ink)">Range</strong> button
           for quick bulk selection.
         </span>
       </div>
@@ -495,7 +473,7 @@ function RunStatusPill({
   if (status === "resolving" || status === "queued") {
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+        className="inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
         style={{
           background: "var(--info-soft)",
           borderColor: "var(--rule)",
@@ -510,7 +488,7 @@ function RunStatusPill({
   if (status === "downloading") {
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
+        className="inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium"
         style={{
           background: "var(--info-soft)",
           borderColor: "var(--rule)",
@@ -525,7 +503,7 @@ function RunStatusPill({
   if (status === "done") {
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
         style={{
           background: "var(--success-soft)",
           color: "var(--success)",
@@ -538,7 +516,7 @@ function RunStatusPill({
   if (status === "error") {
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+        className="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
         style={{
           background: "var(--error-soft)",
           color: "var(--error)",

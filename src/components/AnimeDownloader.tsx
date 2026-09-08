@@ -322,29 +322,25 @@ export default function AnimeDownloader() {
   }, [downloads]);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-100">
+    <div className="min-h-screen w-full bg-linear-to-b from-slate-950 via-slate-950 to-slate-900 text-slate-100">
       <Toasts toasts={toasts} />
 
       <header className="border-b border-white/5 bg-slate-950/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 via-fuchsia-500 to-rose-500 shadow-lg shadow-fuchsia-900/30">
+            <div className="grid h-11 w-11 place-items-center rounded-xl bg-linear-to-br from-indigo-500 via-fuchsia-500 to-rose-500 shadow-lg shadow-fuchsia-900/30">
               <Film className="h-5 w-5 text-white" />
             </div>
             <div>
               <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-                AnimeHeaven Downloader
+                Anime Downloader
               </h1>
               <p className="text-xs text-slate-400 sm:text-sm">
-                Scrape episode lists, resolve direct{" "}
+                scans episode lists, resolve direct{" "}
                 <code className="rounded bg-white/5 px-1 py-0.5">.mp4</code>{" "}
-                streams, and download them through a hotlink-friendly proxy.
+                   download them through a hotlink-friendly proxy.
               </p>
             </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Sparkles className="h-4 w-4 text-amber-300" />
-            <span>Cheerio · Next.js App Router · Tailwind</span>
           </div>
         </div>
       </header>
@@ -405,7 +401,7 @@ export default function AnimeDownloader() {
 
           {episodesError && (
             <div className="mt-4 flex items-start gap-2 rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-sm text-rose-200">
-              <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{episodesError}</span>
             </div>
           )}

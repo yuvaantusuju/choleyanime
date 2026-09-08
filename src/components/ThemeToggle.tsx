@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme, type ThemeMode } from "./useTheme";
 
@@ -8,8 +8,11 @@ export function ThemeToggle() {
   const { mode, setTheme, hasStored } = useTheme();
   // Avoid hydration mismatch: render a placeholder until the client has read
   // the actual stored / system preference.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const isDark = mounted && mode === "dark";
 
@@ -65,8 +68,8 @@ function ThemeOption({
       className={
         "grid h-7 w-7 place-items-center rounded-full transition " +
         (active
-          ? "bg-[color:var(--ink)] text-[color:var(--paper)] shadow-sm"
-          : "text-[color:var(--ink-soft)] hover:text-[color:var(--ink)]")
+          ? "bg-(--ink) text-(--paper) shadow-sm"
+          : "text-(--ink-soft) hover:text-[color:var(--ink)]")
       }
     >
       {children}

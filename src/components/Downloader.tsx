@@ -324,12 +324,12 @@ export default function Downloader() {
             <p className="eyebrow">Search + Downloader</p>
             <h2 className="font-display mt-3 text-4xl leading-[1.05] sm:text-5xl">
               Find your <em>next series</em>
-            </h2>
-            <p className="mt-3 max-w-xl text-sm text-[color:var(--ink-soft)] sm:text-base">
+                </h2>
+                <p className="mt-3 max-w-xl text-sm text-(--ink-soft) sm:text-base">
               Search by anime title to load a full episode list, then resolve
               the{" "}
-              <span className="font-semibold text-[color:var(--ink)]">real .mp4</span>{" "}
-              streams in one click.
+              <span className="font-semibold text-(--ink)">real .mp4</span>{" "}
+              Download in one click.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
@@ -347,8 +347,8 @@ export default function Downloader() {
 
         {/* Active show card */}
         {activeShow && (
-          <div className="mt-6 flex items-center gap-3 rounded-2xl border rule bg-[color:var(--surface)] p-3 sm:p-4">
-            <div className="h-16 w-12 flex-shrink-0 overflow-hidden rounded-md bg-[color:var(--paper-2)]">
+          <div className="mt-6 flex items-center gap-3 rounded-2xl border rule bg-(--surface) p-3 sm:p-4">
+            <div className="h-16 w-12 shrink-0 overflow-hidden rounded-md bg-(--paper-2)">
               {activeShow.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -358,14 +358,14 @@ export default function Downloader() {
                 />
               ) : (
                 <div className="grid h-full w-full place-items-center">
-                  <Film className="h-4 w-4 text-[color:var(--ink-faint)]" />
+                  <Film className="h-4 w-4 text-(--ink-faint)" />
                 </div>
               )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="eyebrow">Active show</p>
               <p className="truncate font-display text-lg">{activeShow.title}</p>
-              <p className="truncate text-[11px] text-[color:var(--ink-soft)]">
+              <p className="truncate text-[11px] text-(--ink-soft)">
                 {activeShow.url}
               </p>
             </div>
@@ -396,14 +396,14 @@ export default function Downloader() {
               color: "var(--error)",
             }}
           >
-            <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>{episodesError}</span>
           </div>
         )}
 
         {/* Loading state */}
         {loadingEpisodes && (
-          <div className="mt-8 flex items-center justify-center gap-3 rounded-3xl border rule bg-[color:var(--surface)] p-12 text-sm text-[color:var(--ink-soft)]">
+          <div className="mt-8 flex items-center justify-center gap-3 rounded-3xl border rule bg-(--surface) p-12 text-sm text-(--ink-soft)">
             <Loader2 className="h-4 w-4 animate-spin" />
             Scraping episode list…
           </div>
@@ -431,7 +431,7 @@ export default function Downloader() {
         {runs.size > 0 && (
           <div
             id="queue"
-            className="mt-6 rounded-3xl border rule bg-[color:var(--surface)] p-5 animate-fade-in-up"
+            className="mt-6 rounded-3xl border rule bg-(--surface) p-5 animate-fade-in-up"
           >
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -439,7 +439,7 @@ export default function Downloader() {
                 <h3 className="font-display mt-1 text-2xl sm:text-3xl">
                   In <em>progress</em>
                 </h3>
-                <p className="mt-1 text-xs text-[color:var(--ink-soft)]">
+                <p className="mt-1 text-xs text-(--ink-soft)">
                   {queueSummary.active} active · {queueSummary.done} completed
                   · {queueSummary.errored} failed · {queueSummary.total} total
                 </p>
@@ -457,8 +457,8 @@ export default function Downloader() {
 
         {/* Empty state */}
         {episodes.length === 0 && !activeShow && !loadingEpisodes && (
-          <div className="mt-8 rounded-3xl border border-dashed rule bg-[color:var(--surface)] p-10 text-center">
-            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--paper-2)]">
+          <div className="mt-8 rounded-3xl border border-dashed rule bg-(--surface) p-10 text-center">
+            <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-(--paper-2)  ">
               <Film className="h-5 w-5 text-(--ink-soft)11" />
             </span>
             <h3 className="font-display mt-4 text-2xl">
@@ -472,16 +472,16 @@ export default function Downloader() {
         )}
 
         {/* Privacy footer note */}
-        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border rule bg-[color:var(--surface)] p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border rule bg-(--surface) p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--paper-2)]">
-              <Link2 className="h-4 w-4 text-[color:var(--ink-soft)]" />
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-(--paper-2)">
+              <Link2 className="h-4 w-4 text-(--ink-soft)" />
             </span>
             <div>
               <p className="font-display text-lg">Privacy first</p>
-              <p className="text-xs text-[color:var(--ink-soft)]">
+              <p className="text-xs text-(--ink-soft)">
                 The proxy adds the upstream{" "}
-                <code className="rounded bg-[color:var(--paper-2)] px-1">
+                <code className="rounded bg-(--paper-2) px-1">
                   Referer
                 </code>{" "}
                 so the CDN serves the file. Your browser talks only to us.
@@ -506,11 +506,11 @@ function Toasts({ toasts }: { toasts: Toast[] }) {
           className={classNames(
             "pointer-events-auto rounded-2xl border px-3 py-2 text-xs shadow-md backdrop-blur",
             t.tone === "success" &&
-              "bg-[color:var(--success-soft)] text-[color:var(--success)]",
+              "bg-(--success-soft) text-(--success)",
             t.tone === "error" &&
-              "bg-[color:var(--error-soft)] text-[color:var(--error)]",
+              "bg-(--error-soft) text-(--error)",
             t.tone === "info" &&
-              "border rule bg-[color:var(--surface)] text-[color:var(--ink)]"
+              "border rule bg-(--surface) text-(--ink)"
           )}
         >
           {t.text}

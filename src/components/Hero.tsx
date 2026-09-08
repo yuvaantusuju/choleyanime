@@ -26,13 +26,13 @@ export function Hero() {
             <em>Keep forever.</em>
           </h1>
 
-          <p className="mt-6 max-w-xl text-base text-[color:var(--ink-soft)] sm:text-lg">
-            Turn any <span className="font-semibold text-[color:var(--ink)]">animeheaven.me</span>{" "}
-            show link into a clean episode list, resolve the direct{" "}
-            <code className="rounded bg-[color:var(--paper-2)] px-1.5 py-0.5 text-sm">
+          <p className="mt-6 max-w-xl text-base text-(--ink-soft) sm:text-lg">
+            Turn any <span className="font-semibold text-(--ink)">anime</span>{" "}
+            into a clean episode list, resolve the direct{" "}
+            <code className="rounded bg-(--paper-2) px-1.5 py-0.5 text-sm">
               .mp4
             </code>{" "}
-            stream, and download it offline — without the clutter.
+            choose and download it offline — without the clutter.
           </p>
 
           <div className="mt-7 flex flex-wrap items-center gap-3">
@@ -58,37 +58,37 @@ export function Hero() {
         </div>
 
         <aside className="relative">
-          <div className="rounded-3xl border rule bg-[color:var(--paper-2)] p-6 sm:p-7">
+          <div className="rounded-3xl border rule bg-(--paper-2) p-6 sm:p-7">
             <p className="eyebrow">Live stats</p>
             <p className="font-display mt-3 text-3xl">
-              From link <em>to library</em>
+              From name <em>to library</em>
             </p>
 
             <dl className="mt-6 grid grid-cols-3 gap-4 text-center">
               {[
-                { k: "EP", v: "01", l: "Paste URL" },
-                { k: "EP", v: "02", l: "Pick episodes" },
-                { k: "EP", v: "03", l: "Download .mp4" },
+                { k: "STEP", v: "01", l: "Enter name" },
+                { k: "STEP", v: "02", l: "Pick episodes" },
+                { k: "STEP", v: "03", l: "Download .mp4" },
               ].map((s) => (
                 <div
                   key={s.v}
-                  className="rounded-2xl border rule bg-[color:var(--surface)] py-4"
+                  className="rounded-2xl border rule bg-(--surface) py-4"
                 >
-                  <p className="text-[10px] uppercase tracking-[0.22em] text-[color:var(--ink-soft)]">
+                  <p className="text-[10px] uppercase tracking-[0.22em] text-(--ink-soft)">
                     {s.k}
                   </p>
                   <p className="font-display mt-1 text-3xl italic">
                     {s.v}
                   </p>
-                  <p className="mt-1 text-[11px] text-[color:var(--ink-soft)]">
+                  <p className="mt-1 text-[11px] text-(--ink-soft)">
                     {s.l}
                   </p>
                 </div>
               ))}
             </dl>
 
-            <div className="mt-5 flex items-center gap-2 text-xs text-[color:var(--ink-soft)]">
-              <span className="dot text-[color:var(--success)]" />
+            <div className="mt-5 flex items-center gap-2 text-xs text-(--ink-soft)">
+              <span className="dot text-(--success)" />
               All processing happens on the server — your browser only sees
               the final file.
             </div>

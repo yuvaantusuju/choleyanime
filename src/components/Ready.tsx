@@ -8,7 +8,7 @@ const SHOWS = [
   { name: "BLADE", count: "42" },
   { name: "NARUTO", count: "220" },
   { name: "BLEACH", count: "366" },
-  { name: "ONE PIECE", count: "1100" },
+  { name: "ONE PIECE", count: "1171" },
 ];
 
 export function Ready() {
@@ -32,13 +32,13 @@ export function Ready() {
           {SHOWS.map((s) => (
             <li
               key={s.name}
-              className="group flex flex-col gap-2 rounded-2xl border rule bg-[color:var(--surface)] p-4 transition hover:border-[color:var(--ink)]"
+              className="group flex flex-col gap-2 rounded-2xl border rule bg-(--surface) p-4 transition hover:border-(--ink)"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-[color:var(--paper-2)] text-[color:var(--ink-soft)] transition group-hover:bg-[color:var(--ink)] group-hover:text-[color:var(--paper)]">
+              <span className="grid h-9 w-9 place-items-center rounded-full bg-(--paper-2) text-(--ink-soft) transition group-hover:bg-(--ink) group-hover:text-(--paper)">
                 <Trophy className="h-4 w-4" />
               </span>
               <p className="font-display mt-1 text-lg">{s.name}</p>
-              <p className="text-[11px] uppercase tracking-[0.2em] text-[color:var(--ink-soft)]">
+              <p className="text-[11px] uppercase tracking-[0.2em] text-(--ink-soft)">
                 <span className="font-display text-xl not-italic">{s.count}</span>{" "}
                 episodes
               </p>

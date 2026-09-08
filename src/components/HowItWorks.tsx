@@ -6,8 +6,8 @@ const STEPS = [
   {
     n: "01",
     icon: Link2,
-    title: "Paste the show URL",
-    body: "Copy any animeheaven.me show page and drop it into the field. We'll fetch and parse it for you.",
+    title: "Enter the name",
+    body:  "Enter the name of the anime you want to download and hit enter. We'll find the show and give you a clean episode list.",
   },
   {
     n: "02",
@@ -31,7 +31,7 @@ export function HowItWorks() {
           <div>
             <p className="eyebrow">Simple by Choley</p>
             <h2 className="font-display mt-3 text-4xl leading-[1.05] sm:text-5xl">
-              From link to library <br />
+              From name to library <br />
               <em>in three tiny steps.</em>
             </h2>
           </div>

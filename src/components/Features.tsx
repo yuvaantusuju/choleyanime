@@ -12,13 +12,13 @@ import {
 const FEATURES = [
   {
     icon: Zap,
-    title: "Fast scraping",
-    body: "Cheerio parses the show page server-side and returns a clean episode list in under a second.",
+    title: "Fast Scans",
+    body: "The show page server-side and returns a clean episode list in under a second.",
   },
   {
     icon: ShieldCheck,
     title: "Referer-aware proxy",
-    body: "Our download route streams the .mp4 with the right headers so the upstream CDN serves it back to you.",
+    body: "Our download route streams the .mp4 with the right headers.",
   },
   {
     icon: Layers3,
@@ -27,7 +27,7 @@ const FEATURES = [
   },
   {
     icon: Gauge,
-    title: "Streamed, not buffered",
+    title: "Download, not buffered",
     body: "Bytes pass straight from upstream to your browser — no temp files, no double storage.",
   },
   {
@@ -53,7 +53,7 @@ export function Features() {
               Built for <em>watchers.</em>
             </h2>
           </div>
-          <p className="max-w-md text-sm text-[color:var(--ink-soft)] sm:text-right">
+          <p className="max-w-md text-sm text-(--ink-soft) sm:text-right">
             Everything you need to archive your favourite series — fast,
             premium and beautifully simple.
           </p>
@@ -65,13 +65,13 @@ export function Features() {
             return (
               <li
                 key={f.title}
-                className="rounded-2xl border rule bg-[color:var(--surface)] p-6"
+                className="rounded-2xl border rule bg-(--surface) p-6"
               >
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--ink)] text-[color:var(--paper)]">
+                <span className="grid h-10 w-10 place-items-center rounded-full bg-(--ink) text-(--paper)">
                   <Icon className="h-4 w-4" />
                 </span>
                 <h3 className="font-display mt-4 text-xl">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--ink-soft)]">
+                <p className="mt-2 text-sm leading-relaxed text-(--ink-soft)">
                   {f.body}
                 </p>
               </li>
