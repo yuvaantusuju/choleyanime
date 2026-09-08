@@ -29,7 +29,7 @@ export type FetchOptions = {
  * `Referer` (for the .mp4 proxy) and User-Agent, so keep these consistent
  * across routes.
  */
-export const DEFAULT_HEADERS: HeadersInit = {
+export const DEFAULT_HEADERS: Record<string, string> = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
     "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -41,7 +41,7 @@ export const DEFAULT_HEADERS: HeadersInit = {
   Pragma: "no-cache",
 };
 
-export const REFERER_HEADERS: HeadersInit = {
+export const REFERER_HEADERS: Record<string, string> = {
   ...DEFAULT_HEADERS,
   Referer: "https://animeheaven.me/",
 };

@@ -459,13 +459,13 @@ export default function Downloader() {
         {episodes.length === 0 && !activeShow && !loadingEpisodes && (
           <div className="mt-8 rounded-3xl border border-dashed rule bg-[color:var(--surface)] p-10 text-center">
             <span className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-[color:var(--paper-2)]">
-              <Film className="h-5 w-5 text-[color:var(--ink-soft)]" />
+              <Film className="h-5 w-5 text-(--ink-soft)11" />
             </span>
             <h3 className="font-display mt-4 text-2xl">
               No episodes loaded <em>yet</em>
             </h3>
-            <p className="mx-auto mt-2 max-w-md text-sm text-[color:var(--ink-soft)]">
-              Search by anime title above — pick a result and we'll fetch its
+            <p className="mx-auto mt-2 max-w-md text-sm text-(--ink-soft)">
+              Search by anime title above — pick a result and we&apos;ll fetch its
               full episode list for you.
             </p>
           </div>
