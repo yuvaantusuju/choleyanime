@@ -479,20 +479,6 @@ export default function AnimeDownloader() {
                         >
                           <Download className="h-3.5 w-3.5" /> Download
                         </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            void copyToClipboard(ep.fullUrl, `gate-${ep.fullUrl}`)
-                          }
-                          className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-1.5 text-xs text-slate-200 transition hover:bg-white/10"
-                          title="Copy gate page URL"
-                        >
-                          {copiedKey === `gate-${ep.fullUrl}` ? (
-                            <ClipboardCheck className="h-3.5 w-3.5 text-emerald-400" />
-                          ) : (
-                            <Clipboard className="h-3.5 w-3.5" />
-                          )}
-                        </button>
                       </div>
                     </li>
                   );

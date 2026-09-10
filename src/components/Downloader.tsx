@@ -467,28 +467,6 @@ export default function Downloader() {
             </p>
           </div>
         )}
-
-        {/* Privacy footer note */}
-        <div className="mt-8 flex flex-col items-start gap-3 rounded-2xl border rule bg-(--surface) p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-(--paper-2)">
-              <Link2 className="h-4 w-4 text-(--ink-soft)" />
-            </span>
-            <div>
-              <p className="font-display text-lg">Privacy first</p>
-              <p className="text-xs text-(--ink-soft)">
-                The proxy adds the upstream{" "}
-                <code className="rounded bg-(--paper-2) px-1">
-                  Referer
-                </code>{" "}
-                so the CDN serves the file. Your browser talks only to us.
-              </p>
-            </div>
-          </div>
-          <a href="#how" className="btn-pill btn-outline">
-            Read the steps <ArrowRight className="h-3.5 w-3.5" />
-          </a>
-        </div>
       </div>
     </section>
   );
